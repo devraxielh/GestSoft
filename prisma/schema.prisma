@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  createdAt   DateTime     @default(now())
+  users       User[]
+  permissions Permission[] @relation("PermissionToRole")
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  roles       Role[]   @relation("PermissionToRole")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  active    Boolean  @default(true)
+  roleId    Int
+  createdAt DateTime @default(now())
+  role      Role     @relation(fields: [roleId], references: [id])
+
+  @@index([roleId], map: "User_roleId_fkey")
+}
+
+model Faculty {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  address  String?
+  deanName String    @default("Sin asignar")
+  email    String?
+  phone    String?
+  programs Program[]
+}
+
+model Program {
+  id           Int      @id @default(autoincrement())
+  name         String   @unique
+  facultyId    Int
+  address      String?
+  directorName String   @default("Sin asignar")
+  email        String?
+  phone        String?
+  persons      Person[]
+  faculty      Faculty  @relation(fields: [facultyId], references: [id])
+
+  @@index([facultyId], map: "Program_facultyId_fkey")
+}
+
+model Person {
+  id             Int                     @id @default(autoincrement())
+  idType         String
+  identification String                  @unique
+  phone          String?
+  email          String
+  createdAt      DateTime                @default(now())
+  programId      Int?
+  fullName       String
+  assignments    CertificateAssignment[]
+  program        Program?                @relation(fields: [programId], references: [id])
+
+  @@index([programId], map: "Person_programId_fkey")
+}
+
+model Event {
+  id           Int           @id @default(autoincrement())
+  name         String
+  startDate    DateTime
+  endDate      DateTime
+  description  String?       @db.Text
+  eventType    String
+  createdAt    DateTime      @default(now())
+  status       String        @default("Realizado")
+  certificates Certificate[]
+}
+
+model Certificate {
+  id                Int      @id @default(autoincrement())
+  participationType String
+  templateHtml      String   @db.LongText
+  eventId           Int
+  issueDate         DateTime
+  createdAt         DateTime @default(now())
+  event             Event    @relation(fields: [eventId], references: [id])
+  assignments       CertificateAssignment[]
+
+  @@index([eventId], map: "Certificate_eventId_fkey")
+}
+
+model CertificateAssignment {
+  id                   Int         @id @default(autoincrement())
+  certificateId        Int
+  personId             Int
+  createdAt            DateTime    @default(now())
+  participationDetails String?     @db.Text
+  certificate          Certificate @relation(fields: [certificateId], references: [id])
+  person               Person      @relation(fields: [personId], references: [id])
+
+  @@index([personId], map: "CertificateAssignment_personId_fkey")
+  @@index([certificateId], map: "CertificateAssignment_certificateId_fkey")
+}

@@ -7,10 +7,16 @@ interface Event { id: number; name: string }
 interface Certificate { id: number; participationType: string; templateHtml: string; event: Event; issueDate: string }
 interface Person { id: number; fullName: string; identification: string }
 interface Assignment { id: number; certificate: Certificate; person: Person; participationDetails?: string }
+interface ThesisResult {
+    id: number; title: string; level: string; status: string;
+    defenseDate?: string; grade?: number; program?: { name: string }
+    students: { person: Person }[]; advisors: { person: Person }[]; juries: { person: Person }[]
+}
 
 export default function VerificacionPage() {
     const [code, setCode] = useState("")
     const [assignment, setAssignment] = useState<Assignment | null>(null)
+    const [thesis, setThesis] = useState<ThesisResult | null>(null)
     const [loading, setLoading] = useState(false)
     const [searched, setSearched] = useState(false)
     const [previewHtml, setPreviewHtml] = useState("")
@@ -22,12 +28,18 @@ export default function VerificacionPage() {
         setLoading(true)
         setSearched(true)
         setAssignment(null)
+        setThesis(null)
         try {
             const res = await fetch(`/api/verificacion?code=${encodeURIComponent(code.trim())}`)
             if (res.ok) {
                 const data = await res.json()
-                setAssignment(data.assignment)
-                toast.success("Certificado verificado correctamente")
+                if (data.assignment) {
+                    setAssignment(data.assignment)
+                    toast.success("Certificado verificado correctamente")
+                } else if (data.thesis) {
+                    setThesis(data.thesis)
+                    toast.success("Trabajo de grado verificado correctamente")
+                }
             } else {
                 toast.error("Código de verificación no válido o certificado no encontrado")
             }
@@ -193,7 +205,80 @@ export default function VerificacionPage() {
                     </div>
                 )}
 
-                {searched && !loading && !assignment && (
+                {/* === RESULTADO: TRABAJO DE GRADO === */}
+                {searched && !loading && thesis && (
+                    <div className="max-w-2xl mx-auto rounded-2xl border border-success-200 bg-success-50/30 shadow-theme-sm overflow-hidden animate-fade-in-up">
+                        <div className="bg-success-50 px-6 py-4 border-b border-success-100 flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-success-700 font-semibold">
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                Trabajo de Grado Auténtico
+                                <span className={`ml-2 text-xs font-medium px-2 py-0.5 rounded-full ${thesis.status === 'Terminada' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{thesis.status}</span>
+                            </div>
+                            <span className="font-mono text-xs text-success-600 bg-success-100 px-2 py-1 rounded border border-success-200">{code}</span>
+                        </div>
+
+                        <div className="p-6 bg-white flex flex-col gap-4">
+                            <div>
+                                <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Título</p>
+                                <p className="text-lg font-semibold text-gray-800">{thesis.title}</p>
+                            </div>
+
+                            <div className="h-px bg-gray-100 w-full" />
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Nivel</p>
+                                    <span className="inline-flex rounded-full bg-brand-50 text-brand-600 px-2.5 py-0.5 text-xs font-medium">{thesis.level}</span>
+                                </div>
+                                {thesis.program && (
+                                    <div>
+                                        <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Programa</p>
+                                        <p className="text-sm text-gray-700">{thesis.program.name}</p>
+                                    </div>
+                                )}
+                                {thesis.defenseDate && (
+                                    <div>
+                                        <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Fecha de Sustentación</p>
+                                        <p className="text-sm text-gray-700">{new Date(thesis.defenseDate).toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" })}</p>
+                                    </div>
+                                )}
+                                {thesis.grade && (
+                                    <div>
+                                        <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Nota Final</p>
+                                        <p className="text-sm font-semibold text-gray-800">{thesis.grade}</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {thesis.students.length > 0 && (
+                                <div>
+                                    <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-2">Estudiantes</p>
+                                    {thesis.students.map(s => (
+                                        <p key={s.person.id} className="text-sm text-gray-700">{s.person.fullName} <span className="text-gray-400 font-mono text-xs">· {s.person.identification}</span></p>
+                                    ))}
+                                </div>
+                            )}
+                            {thesis.advisors.length > 0 && (
+                                <div>
+                                    <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-2">Asesores</p>
+                                    {thesis.advisors.map(a => (
+                                        <p key={a.person.id} className="text-sm text-gray-700">{a.person.fullName} <span className="text-gray-400 font-mono text-xs">· {a.person.identification}</span></p>
+                                    ))}
+                                </div>
+                            )}
+                            {thesis.juries.length > 0 && (
+                                <div>
+                                    <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-2">Jurados</p>
+                                    {thesis.juries.map(j => (
+                                        <p key={j.person.id} className="text-sm text-gray-700">{j.person.fullName} <span className="text-gray-400 font-mono text-xs">· {j.person.identification}</span></p>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {searched && !loading && !assignment && !thesis && (
                     <div className="max-w-xl mx-auto text-center py-10 rounded-2xl border border-error-200 bg-error-50/50 shadow-theme-xs animate-fade-in-up">
                         <svg className="w-12 h-12 text-error-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                         <h3 className="text-lg font-semibold text-error-800 mb-2">Código Inválido</h3>

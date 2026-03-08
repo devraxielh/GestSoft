@@ -120,14 +120,14 @@ model CertificateAssignment {
 }
 
 model Thesis {
-  id           Int       @id @default(autoincrement())
-  title        String    @db.Text
-  level        String    // pregrado, especializacion, maestria, doctorado
-  defenseDate  DateTime?
-  grade        Float?
-  status       String    @default("En desarrollo") // en desarrollo, terminada
-  programId    Int
-  createdAt    DateTime  @default(now())
+  id               Int       @id @default(autoincrement())
+  title            String    @db.Text
+  level            String    // pregrado, especializacion, maestria, doctorado
+  defenseDate      DateTime?
+  grade            Float?
+  status           String    @default("En desarrollo") // en desarrollo, terminada
+  programId        Int
+  createdAt        DateTime  @default(now())
   
   program      Program   @relation(fields: [programId], references: [id])
   students     ThesisStudent[]

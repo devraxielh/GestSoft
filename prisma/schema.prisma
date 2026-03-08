@@ -31,6 +31,7 @@ model User {
   active    Boolean  @default(true)
   roleId    Int
   createdAt DateTime @default(now())
+  image     String?
   role      Role     @relation(fields: [roleId], references: [id])
 
   @@index([roleId], map: "User_roleId_fkey")
@@ -55,6 +56,7 @@ model Program {
   email        String?
   phone        String?
   persons      Person[]
+  theses       Thesis[]
   faculty      Faculty  @relation(fields: [facultyId], references: [id])
 
   @@index([facultyId], map: "Program_facultyId_fkey")
@@ -72,6 +74,10 @@ model Person {
   assignments    CertificateAssignment[]
   program        Program?                @relation(fields: [programId], references: [id])
 
+  studentTheses  ThesisStudent[]
+  advisorTheses  ThesisAdvisor[]
+  juryTheses     ThesisJury[]
+
   @@index([programId], map: "Person_programId_fkey")
 }
 
@@ -88,13 +94,13 @@ model Event {
 }
 
 model Certificate {
-  id                Int      @id @default(autoincrement())
+  id                Int                     @id @default(autoincrement())
   participationType String
-  templateHtml      String   @db.LongText
+  templateHtml      String                  @db.LongText
   eventId           Int
   issueDate         DateTime
-  createdAt         DateTime @default(now())
-  event             Event    @relation(fields: [eventId], references: [id])
+  createdAt         DateTime                @default(now())
+  event             Event                   @relation(fields: [eventId], references: [id])
   assignments       CertificateAssignment[]
 
   @@index([eventId], map: "Certificate_eventId_fkey")
@@ -111,4 +117,77 @@ model CertificateAssignment {
 
   @@index([personId], map: "CertificateAssignment_personId_fkey")
   @@index([certificateId], map: "CertificateAssignment_certificateId_fkey")
+}
+
+model Thesis {
+  id           Int       @id @default(autoincrement())
+  title        String    @db.Text
+  level        String    // pregrado, especializacion, maestria, doctorado
+  defenseDate  DateTime?
+  grade        Float?
+  status       String    @default("En desarrollo") // en desarrollo, terminada
+  programId    Int
+  createdAt    DateTime  @default(now())
+  
+  program      Program   @relation(fields: [programId], references: [id])
+  students     ThesisStudent[]
+  advisors     ThesisAdvisor[]
+  juries       ThesisJury[]
+
+  @@index([programId])
+}
+
+model ThesisStudent {
+  id        Int      @id @default(autoincrement())
+  thesisId  Int
+  personId  Int
+  joinedAt  DateTime @default(now())
+
+  thesis    Thesis   @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  person    Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([thesisId, personId])
+  @@index([personId])
+  @@index([thesisId])
+}
+
+model ThesisAdvisor {
+  id        Int      @id @default(autoincrement())
+  thesisId  Int
+  personId  Int
+  roleType  String   @default("Principal") // e.g. Principal, Co-asesor
+  joinedAt  DateTime @default(now())
+
+  thesis    Thesis   @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  person    Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([thesisId, personId])
+  @@index([personId])
+  @@index([thesisId])
+}
+
+model ThesisJury {
+  id        Int      @id @default(autoincrement())
+  thesisId  Int
+  personId  Int
+  assignedAt DateTime @default(now())
+
+  thesis    Thesis   @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  person    Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([thesisId, personId])
+  @@index([personId])
+  @@index([thesisId])
+}
+
+model Setting {
+  id          Int      @id @default(1)
+  companyName String   @default("GestSoft")
+  smtpHost    String?
+  smtpPort    String?
+  smtpUser    String?
+  smtpPass    String?
+  smtpFrom    String?
+  logoUrl     String?  @default("/logo.webp")
+  updatedAt   DateTime @updatedAt
 }

@@ -23,6 +23,8 @@ export default function RolesPage() {
     const [deleting, setDeleting] = useState(false)
     const [showViewerModal, setShowViewerModal] = useState(false)
     const [viewerRole, setViewerRole] = useState<Role | null>(null)
+    const [showPermsModal, setShowPermsModal] = useState(false)
+    const [permsRole, setPermsRole] = useState<Role | null>(null)
     const [viewerUsers, setViewerUsers] = useState<RoleUser[]>([])
     const [viewerLoading, setViewerLoading] = useState(false)
     const [viewerSearch, setViewerSearch] = useState("")
@@ -124,6 +126,11 @@ export default function RolesPage() {
         return u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
     })
 
+    const openPermsModal = (role: Role) => {
+        setPermsRole(role)
+        setShowPermsModal(true)
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -177,9 +184,12 @@ export default function RolesPage() {
                                             <td className="px-6 py-4">
                                                 <div className="flex flex-wrap gap-1">
                                                     {role.permissions && role.permissions.length > 0 ? (
-                                                        <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+                                                        <button
+                                                            onClick={() => openPermsModal(role)}
+                                                            className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-600 hover:bg-blue-100 transition-colors cursor-pointer"
+                                                        >
                                                             {role.permissions.length} permiso(s)
-                                                        </span>
+                                                        </button>
                                                     ) : <span className="text-xs text-gray-400">Ninguno</span>}
                                                 </div>
                                             </td>
@@ -217,14 +227,15 @@ export default function RolesPage() {
                                         {Object.entries(
                                             permissionsList.reduce((acc, perm) => {
                                                 const parts = perm.name.split('_');
-                                                const resource = parts.slice(1).join('_') || 'others';
+                                                const action = parts[0]; // e.g. manage
+                                                const resource = parts.slice(1).join('_') || 'others'; // e.g. users
                                                 if (!acc[resource]) acc[resource] = [];
                                                 acc[resource].push(perm);
                                                 return acc;
                                             }, {} as Record<string, Permission[]>)
                                         ).map(([resource, perms]) => {
-                                            const resNames: Record<string, string> = { user: "Usuarios", role: "Roles", faculty: "Facultades", program: "Programas", event: "Eventos", certificate: "Certificados", person: "Personas", assignment: "Asignaciones" };
-                                            const actNames: Record<string, string> = { create: "Crear", read: "Ver", update: "Editar", delete: "Eliminar" };
+                                            const resNames: Record<string, string> = { users: "Usuarios", roles: "Roles", faculties: "Facultades", programs: "Programas", events: "Eventos", certificates: "Certificados", persons: "Personas", assignments: "Asignaciones", system: "Sistema", permissions: "Permisos", settings: "Configuración" };
+                                            const actNames: Record<string, string> = { create: "Crear", read: "Ver", update: "Editar", delete: "Eliminar", manage: "Gestionar", all: "Todo" };
 
                                             const toggleAllResource = (e: React.ChangeEvent<HTMLInputElement>) => {
                                                 const resIds = perms.map(p => p.id);
@@ -330,6 +341,78 @@ export default function RolesPage() {
                         <div className="px-6 py-4 border-t border-gray-100 flex justify-between items-center">
                             <span className="text-xs text-gray-400">{filteredViewerUsers.length} usuario{filteredViewerUsers.length !== 1 ? "s" : ""}</span>
                             <button onClick={() => setShowViewerModal(false)} className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Permissions Viewer Modal */}
+            {showPermsModal && permsRole && (
+                <div className="fixed inset-0 z-[99999] flex items-start pt-[5vh] justify-center bg-gray-900/50 p-4">
+                    <div className="w-full max-w-2xl rounded-2xl border border-gray-200 bg-white shadow-theme-lg max-h-[85vh] flex flex-col">
+                        <div className="px-6 pt-6 pb-4 border-b border-gray-100">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-800">Permisos del Rol</h3>
+                                    <p className="text-sm text-gray-500 mt-0.5">Rol: <span className="font-medium text-brand-600">{permsRole.name}</span></p>
+                                </div>
+                                <button onClick={() => setShowPermsModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">✕</button>
+                            </div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto px-6 py-4">
+                            {!permsRole.permissions || permsRole.permissions.length === 0 ? (
+                                <div className="text-center py-12 text-gray-400 text-sm">No hay permisos asignados a este rol</div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {Object.entries(
+                                        permsRole.permissions.reduce((acc, perm) => {
+                                            const parts = perm.name.split('_');
+                                            const action = parts[0];
+                                            const resource = parts.slice(1).join('_') || 'others';
+                                            if (!acc[resource]) acc[resource] = [];
+                                            acc[resource].push(perm);
+                                            return acc;
+                                        }, {} as Record<string, Permission[]>)
+                                    ).map(([resource, perms]) => {
+                                        const resNames: Record<string, string> = { users: "Usuarios", roles: "Roles", faculties: "Facultades", programs: "Programas", events: "Eventos", certificates: "Certificados", persons: "Personas", assignments: "Asignaciones", system: "Sistema", permissions: "Permisos", settings: "Configuración" };
+                                        const actNames: Record<string, string> = { create: "Crear", read: "Ver", update: "Editar", delete: "Eliminar", manage: "Gestionar", all: "Todo" };
+
+                                        return (
+                                            <div key={resource} className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+                                                <h4 className="text-sm font-semibold text-gray-800 capitalize mb-3 border-b border-gray-100 pb-2">
+                                                    {resNames[resource] || resource}
+                                                </h4>
+                                                <div className="flex flex-col gap-2 relative z-50">
+                                                    {perms.map(perm => {
+                                                        const action = perm.name.split('_')[0];
+                                                        return (
+                                                            <div key={perm.id} className="flex items-center gap-2 relative text-sm text-gray-700 bg-white p-2 rounded-md border border-gray-100 shadow-sm group">
+                                                                <svg className="w-4 h-4 text-green-500 min-w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                                <span className="font-medium w-20 flex-shrink-0">{actNames[action] || action}</span>
+                                                                <span className="text-xs text-gray-500 truncate" title={perm.description}>{perm.description || perm.name}</span>
+
+                                                                {/* Custom Tooltip */}
+                                                                {perm.description && (
+                                                                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[999999] bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap shadow-lg">
+                                                                        {perm.description}
+                                                                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-gray-900"></div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                        <div className="px-6 py-4 border-t border-gray-100 flex justify-between items-center">
+                            <span className="text-xs text-gray-400">{permsRole.permissions?.length || 0} permiso{(permsRole.permissions?.length || 0) !== 1 ? "s" : ""}</span>
+                            <button onClick={() => setShowPermsModal(false)} className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">Cerrar</button>
                         </div>
                     </div>
                 </div>

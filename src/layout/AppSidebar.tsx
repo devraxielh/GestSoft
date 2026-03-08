@@ -3,6 +3,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "@/context/SidebarContext";
+import { useState, useEffect } from "react";
 
 type NavItem = {
     name: string;
@@ -74,7 +75,38 @@ const navItems: NavItem[] = [
             </svg>
         ),
     },
+    {
+        name: "Trabajos de Grado",
+        path: "/dashboard/trabajos-grado",
+        icon: (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 14l9-5-9-5-9 5 9 5z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 14v7" />
+            </svg>
+        ),
+    },
     /*{
+    {
+        name: "Configuraciones",
+        path: "/dashboard/configuraciones",
+        icon: (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924-1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+        ),
+    },
+    {
+        name: "Perfil",
+        path: "/dashboard/perfil",
+        icon: (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+        ),
+    },
+
     {
         name: "Certificados",
         path: "/dashboard/certificados",
@@ -98,6 +130,25 @@ const navItems: NavItem[] = [
 const AppSidebar: React.FC = () => {
     const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
     const pathname = usePathname();
+    const [config, setConfig] = useState({ companyName: "GestSoft", logoUrl: "/logo.webp" });
+
+    useEffect(() => {
+        const fetchConfig = async () => {
+            try {
+                const res = await fetch("/api/configuracion");
+                if (res.ok) {
+                    const data = await res.json();
+                    setConfig({
+                        companyName: data.companyName || "GestSoft",
+                        logoUrl: data.logoUrl || "/logo.webp"
+                    });
+                }
+            } catch (error) {
+                console.error("Error fetching sidebar config:", error);
+            }
+        };
+        fetchConfig();
+    }, []);
 
     const isActive = (path: string) => pathname === path;
 
@@ -117,14 +168,14 @@ const AppSidebar: React.FC = () => {
         >
             {/* Logo */}
             <div
-                className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+                className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start px-2"
                     }`}
             >
-                <Link href="/dashboard" className="flex items-center gap-3">
-                    <img src="/logo.webp" alt="Logo" className="w-30" />
+                <Link href="/dashboard" className="flex flex-col items-center gap-2 w-full text-center">
+                    <img src={config.logoUrl} alt="Logo" className="w-24 h-auto" />
                     {(isExpanded || isHovered || isMobileOpen) && (
-                        <span className="text-lg font-semibold text-gray-900 whitespace-nowrap" style={{ display: "none" }}>
-                            Certificados
+                        <span className="text-sm font-bold text-gray-900 uppercase tracking-wider block">
+                            {config.companyName}
                         </span>
                     )}
                 </Link>

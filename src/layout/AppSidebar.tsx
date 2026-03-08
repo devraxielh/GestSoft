@@ -131,6 +131,7 @@ const AppSidebar: React.FC = () => {
     const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
     const pathname = usePathname();
     const [config, setConfig] = useState({ companyName: "GestSoft", logoUrl: "/logo.webp" });
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
         const fetchConfig = async () => {
@@ -151,6 +152,10 @@ const AppSidebar: React.FC = () => {
     }, []);
 
     const isActive = (path: string) => pathname === path;
+
+    const filteredNavItems = navItems.filter((item) =>
+        item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <aside
@@ -197,8 +202,24 @@ const AppSidebar: React.FC = () => {
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" /></svg>
                             )}
                         </h2>
+                        {(isExpanded || isHovered || isMobileOpen) && (
+                            <div className="px-2 mb-4">
+                                <div className="relative">
+                                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    <input
+                                        type="text"
+                                        placeholder="Filtrar menú..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full rounded-lg border border-gray-100 bg-gray-50 pl-9 pr-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 transition-all"
+                                    />
+                                </div>
+                            </div>
+                        )}
                         <ul className="flex flex-col gap-2">
-                            {navItems.map((nav) => (
+                            {filteredNavItems.map((nav) => (
                                 <li key={nav.path}>
                                     <Link
                                         href={nav.path}

@@ -27,7 +27,7 @@ export default async function DashboardPage() {
     const stats = await getStats()
 
     const cards = [
-        { label: "Usuarios", value: stats.users, color: "bg-blue-500", shadow: "shadow-blue-500/20", text: "text-blue-600", bgLight: "bg-blue-50", icon: Users },
+        { label: "Usuarios", value: stats.users, color: "bg-brand-500", shadow: "shadow-brand-500/20", text: "text-brand-600", bgLight: "bg-brand-50", icon: Users },
         { label: "Personas", value: stats.persons, color: "bg-emerald-500", shadow: "shadow-emerald-500/20", text: "text-emerald-600", bgLight: "bg-emerald-50", icon: Users },
         { label: "Eventos", value: stats.events, color: "bg-purple-500", shadow: "shadow-purple-500/20", text: "text-purple-600", bgLight: "bg-purple-50", icon: CalendarDays },
         { label: "Certificados", value: stats.certificates, color: "bg-amber-500", shadow: "shadow-amber-500/20", text: "text-amber-600", bgLight: "bg-amber-50", icon: FileText },

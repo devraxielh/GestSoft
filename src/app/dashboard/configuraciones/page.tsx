@@ -9,6 +9,7 @@ export default function ConfiguracionesPage() {
     const [showPass, setShowPass] = useState(false)
     const [uploadingLogo, setUploadingLogo] = useState(false)
     const [currentLogo, setCurrentLogo] = useState("/logo.webp")
+    const [primaryColor, setPrimaryColor] = useState("#465fff")
 
     const [smtpForm, setSmtpForm] = useState({
         host: "",
@@ -41,6 +42,7 @@ export default function ConfiguracionesPage() {
                         pass: data.smtpPass || "",
                         from: data.smtpFrom || ""
                     })
+                    setPrimaryColor(data.primaryColor || "#465fff")
                 }
             } catch (error) {
                 console.error("Error loading config:", error)
@@ -67,14 +69,20 @@ export default function ConfiguracionesPage() {
                     smtpUser: smtpForm.user,
                     smtpPass: smtpForm.pass,
                     smtpFrom: smtpForm.from,
-                    logoUrl: currentLogo
+                    logoUrl: currentLogo,
+                    primaryColor
                 })
             })
 
             if (res.ok) {
                 toast.success("Configuración guardada correctamente")
+                // Trigger instant theme and favicon update
+                window.dispatchEvent(new CustomEvent('config-updated', {
+                    detail: { primaryColor, logoUrl: currentLogo }
+                }));
             } else {
-                toast.error("Error al guardar la configuración")
+                const data = await res.json()
+                toast.error(`Error al guardar: ${data.details || "Error desconocido"}`)
             }
         } catch (error) {
             toast.error("Error de conexión al guardar")
@@ -134,9 +142,16 @@ export default function ConfiguracionesPage() {
                 <button
                     onClick={() => handleSaveConfig()}
                     disabled={loading}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-6 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 transition-colors disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-6 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 transition-colors disabled:opacity-50 min-w-[180px]"
                 >
-                    {loading ? "Guardando..." : "Guardar Todos los Cambios"}
+                    {loading ? (
+                        <>
+                            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                            Guardando...
+                        </>
+                    ) : (
+                        "Guardar Todos los Cambios"
+                    )}
                 </button>
             </div>
 
@@ -144,7 +159,7 @@ export default function ConfiguracionesPage() {
                 {/* General Settings (Company Name & Logo) */}
                 <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs lg:col-span-2">
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-50 text-indigo-500">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-brand-50 text-brand-500">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
@@ -161,6 +176,28 @@ export default function ConfiguracionesPage() {
                             className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 transition-all"
                             placeholder="Ingrese el nombre de la empresa"
                         />
+                    </div>
+
+                    <div className="mb-8 max-w-md">
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Color de Marca (Tema)</label>
+                        <div className="flex items-center gap-4">
+                            <input
+                                type="color"
+                                value={primaryColor}
+                                onChange={e => setPrimaryColor(e.target.value)}
+                                className="w-12 h-12 rounded-lg cursor-pointer border border-gray-200 bg-white p-1 shadow-theme-xs"
+                            />
+                            <div className="flex-1">
+                                <input
+                                    type="text"
+                                    value={primaryColor}
+                                    onChange={e => setPrimaryColor(e.target.value)}
+                                    className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-xs text-gray-500 font-mono focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 transition-all uppercase"
+                                    placeholder="#465FFF"
+                                />
+                            </div>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-2">Este color se aplicará globalmente a botones, enlaces y acentos visuales.</p>
                     </div>
 
                     <div className="flex flex-col md:flex-row items-center gap-8 border-t border-gray-50 pt-8">
@@ -187,7 +224,7 @@ export default function ConfiguracionesPage() {
 
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <label className={`
-                                    cursor-pointer inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-100 px-5 py-2.5 text-sm font-medium text-indigo-700 hover:bg-indigo-200 transition-colors
+                                    cursor-pointer inline-flex items-center justify-center gap-2 rounded-lg bg-brand-100 px-5 py-2.5 text-sm font-medium text-brand-700 hover:bg-brand-200 transition-colors
                                     ${uploadingLogo ? "opacity-50 pointer-events-none" : ""}
                                 `}>
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -296,9 +333,16 @@ export default function ConfiguracionesPage() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 shadow-theme-xs transition-colors disabled:opacity-50"
+                                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 shadow-theme-xs transition-colors disabled:opacity-50"
                             >
-                                {loading ? "Guardando..." : "Guardar Cambios SMTP"}
+                                {loading ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                                        Guardando...
+                                    </>
+                                ) : (
+                                    "Guardar Cambios SMTP"
+                                )}
                             </button>
                         </div>
                     </form>

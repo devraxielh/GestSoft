@@ -89,7 +89,10 @@ export default function AsignacionesPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div><h2 className="text-2xl font-semibold text-gray-800">Asignaciones</h2><p className="text-gray-500 text-sm mt-1">Asignar certificados a personas</p></div>
-                <button onClick={() => { setForm({ certificateId: certificates[0]?.id?.toString() || "", identification: "", details: "" }); setError(""); setShowModal(true) }} className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 transition-colors">+ Asignar</button>
+                <button onClick={() => { setForm({ certificateId: certificates[0]?.id?.toString() || "", identification: "", details: "" }); setError(""); setShowModal(true) }} className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 transition-colors">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                    Asignar
+                </button>
             </div>
             {loading ? <div className="flex justify-center py-16"><div className="w-10 h-10 border-4 border-brand-200 border-t-brand-500 rounded-full animate-spin"></div></div> : (() => {
                 const uniqueEvents = [...new Set(assignments.map(a => a.certificate.event?.name).filter(Boolean))]

@@ -189,5 +189,6 @@ model Setting {
   smtpPass    String?
   smtpFrom    String?
   logoUrl     String?  @default("/logo.webp")
+  primaryColor String?  @default("#465fff")
   updatedAt   DateTime @updatedAt
 }

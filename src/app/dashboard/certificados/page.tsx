@@ -316,7 +316,7 @@ export default function CertificadosPage() {
     const formatDate = (d: string) => new Date(d).toLocaleDateString("es-CO", { year: "numeric", month: "short", day: "numeric" })
     const inputClasses = "w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 shadow-theme-xs transition-shadow"
     const ic = "w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 shadow-theme-xs"
-    const pb: Record<string, string> = { Ponente: "bg-warning-50 text-warning-600", Evaluador: "bg-success-50 text-success-600", Asistente: "bg-brand-50 text-brand-600", Docente: "bg-blue-50 text-blue-600", Conferencista: "bg-purple-50 text-purple-600" }
+    const pb: Record<string, string> = { Ponente: "bg-warning-50 text-warning-600", Evaluador: "bg-success-50 text-success-600", Asistente: "bg-brand-50 text-brand-600", Docente: "bg-brand-50 text-brand-600", Conferencista: "bg-purple-50 text-purple-600" }
 
     const filteredCertificates = certificates.filter(c => {
         if (filterEvent && c.event?.name !== filterEvent) return false
@@ -496,7 +496,7 @@ export default function CertificadosPage() {
                                         required
                                         className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
                                     />
-                                    <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-800">
+                                    <div className="mt-3 p-3 bg-brand-50 border border-brand-100 rounded-lg text-xs text-brand-800">
                                         <p className="font-semibold mb-1">Formato requerido del Excel:</p>
                                         <ul className="list-disc list-inside space-y-0.5 ml-1">
                                             <li>Columna <b>Identificacion</b> (Obligatoria)</li>

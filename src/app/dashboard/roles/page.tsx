@@ -143,7 +143,7 @@ export default function RolesPage() {
                         </button>
                     )}
                     <button onClick={openCreate} className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 transition-colors">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                         Nuevo Rol
                     </button>
                 </div>
@@ -186,7 +186,7 @@ export default function RolesPage() {
                                                     {role.permissions && role.permissions.length > 0 ? (
                                                         <button
                                                             onClick={() => openPermsModal(role)}
-                                                            className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-600 hover:bg-blue-100 transition-colors cursor-pointer"
+                                                            className="inline-flex items-center rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-600 hover:bg-brand-100 transition-colors cursor-pointer"
                                                         >
                                                             {role.permissions.length} permiso(s)
                                                         </button>

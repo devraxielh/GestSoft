@@ -1,4 +1,4 @@
-import crypto from "crypto"
+import CryptoJS from "crypto-js";
 
 export function generateVerificationCode(data: Record<string, any>): string {
     // 1. Normalize and clean data
@@ -11,11 +11,17 @@ export function generateVerificationCode(data: Record<string, any>): string {
         let value = data[key];
 
         // Normalize Dates (issueDate, defenseDate, etc.)
+        // We use UTC methods to avoid local timezone shifts (common in browser vs server)
         if (key.toLowerCase().includes('date') || key === 'issueDate') {
             try {
                 if (value) {
-                    // Always use YYYY-MM-DD to avoid timezone/millisecond mismatches
-                    value = new Date(value).toISOString().split('T')[0];
+                    const d = new Date(value);
+                    if (!isNaN(d.getTime())) {
+                        const year = d.getUTCFullYear();
+                        const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+                        const day = String(d.getUTCDate()).padStart(2, "0");
+                        value = `${year}-${month}-${day}`;
+                    }
                 }
             } catch {
                 // Keep as is if unparseable
@@ -27,6 +33,7 @@ export function generateVerificationCode(data: Record<string, any>): string {
     }
 
     const jsonString = JSON.stringify(normalized);
-    const hash = crypto.createHash('sha256').update(jsonString).digest('hex').toUpperCase();
+    // Use CryptoJS for consistent synchronous hashing in browser and server
+    const hash = CryptoJS.SHA256(jsonString).toString(CryptoJS.enc.Hex).toUpperCase();
     return hash.substring(0, 16);
 }

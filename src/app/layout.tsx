@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 }
 
 import { Toaster } from "react-hot-toast"
+import DynamicTheme from "@/components/DynamicTheme"
 
 export default function RootLayout({
   children,
@@ -20,6 +21,7 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${outfit.variable} font-outfit antialiased`}>
+        <DynamicTheme />
         <AuthProvider>
           <Toaster position="top-right" containerStyle={{ zIndex: 9999999 }} toastOptions={{ duration: 4000, style: { fontSize: '14px' } }} />
           {children}

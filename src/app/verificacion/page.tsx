@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import toast, { Toaster } from "react-hot-toast"
 import { generateVerificationCode } from "@/lib/hash"
 
@@ -14,6 +14,7 @@ interface ThesisResult {
 }
 
 export default function VerificacionPage() {
+    const [config, setConfig] = useState({ companyName: "GestSoft", logoUrl: "/logo.webp" })
     const [code, setCode] = useState("")
     const [assignment, setAssignment] = useState<Assignment | null>(null)
     const [thesis, setThesis] = useState<ThesisResult | null>(null)
@@ -21,6 +22,24 @@ export default function VerificacionPage() {
     const [searched, setSearched] = useState(false)
     const [previewHtml, setPreviewHtml] = useState("")
     const [showPreview, setShowPreview] = useState(false)
+
+    useEffect(() => {
+        const fetchConfig = async () => {
+            try {
+                const res = await fetch("/api/configuracion")
+                if (res.ok) {
+                    const data = await res.json()
+                    setConfig({
+                        companyName: data.companyName || "GestSoft",
+                        logoUrl: data.logoUrl || "/logo.webp"
+                    })
+                }
+            } catch (err) {
+                console.error("Error fetching config:", err)
+            }
+        }
+        fetchConfig()
+    }, [])
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -89,10 +108,10 @@ export default function VerificacionPage() {
                 <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-20 flex items-center justify-center ">
-                            <img src="/logo.webp" alt="Certificados Online Logo" className="w-40 mb-1" />
+                            <img src={config.logoUrl} alt="Logo" className="w-40 mb-1" />
                         </div>
                         <div>
-                            <h1 className="text-lg font-bold text-gray-800">Verificador de Certificados</h1>
+                            <h1 className="text-lg font-bold text-gray-800 uppercase">{config.companyName}</h1>
                             <p className="text-xs text-gray-400">Valida la autenticidad de un documento</p>
                         </div>
                     </div>

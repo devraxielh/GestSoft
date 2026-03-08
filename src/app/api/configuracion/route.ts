@@ -38,7 +38,8 @@ export async function POST(request: Request) {
                 smtpUser: body.smtpUser,
                 smtpPass: body.smtpPass,
                 smtpFrom: body.smtpFrom,
-                logoUrl: body.logoUrl
+                logoUrl: body.logoUrl,
+                primaryColor: body.primaryColor
             },
             create: {
                 id: 1,
@@ -48,13 +49,17 @@ export async function POST(request: Request) {
                 smtpUser: body.smtpUser,
                 smtpPass: body.smtpPass,
                 smtpFrom: body.smtpFrom,
-                logoUrl: body.logoUrl || "/logo.webp"
+                logoUrl: body.logoUrl || "/logo.webp",
+                primaryColor: body.primaryColor || "#465fff"
             }
         })
 
         return NextResponse.json(config)
-    } catch (error) {
-        console.error("Config POST error:", error)
-        return NextResponse.json({ error: "Error al guardar la configuración" }, { status: 500 })
+    } catch (error: any) {
+        console.error("Config POST error details:", error)
+        return NextResponse.json({
+            error: "Error al guardar la configuración",
+            details: error.message || String(error)
+        }, { status: 500 })
     }
 }

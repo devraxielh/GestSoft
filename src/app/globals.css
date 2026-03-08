@@ -20,17 +20,17 @@
   --text-theme-xs: 12px;
   --text-theme-xs--line-height: 18px;
 
-  --color-brand-25: #f2f7ff;
-  --color-brand-50: #ecf3ff;
-  --color-brand-100: #dde9ff;
-  --color-brand-200: #c2d6ff;
-  --color-brand-300: #9cb9ff;
-  --color-brand-400: #7592ff;
-  --color-brand-500: #465fff;
-  --color-brand-600: #3641f5;
-  --color-brand-700: #2a31d8;
-  --color-brand-800: #252dae;
-  --color-brand-900: #262e89;
+  --color-brand-25: color-mix(in srgb, var(--primary-color, #465fff), white 95%);
+  --color-brand-50: color-mix(in srgb, var(--primary-color, #465fff), white 90%);
+  --color-brand-100: color-mix(in srgb, var(--primary-color, #465fff), white 80%);
+  --color-brand-200: color-mix(in srgb, var(--primary-color, #465fff), white 60%);
+  --color-brand-300: color-mix(in srgb, var(--primary-color, #465fff), white 40%);
+  --color-brand-400: color-mix(in srgb, var(--primary-color, #465fff), white 20%);
+  --color-brand-500: var(--primary-color, #465fff);
+  --color-brand-600: color-mix(in srgb, var(--primary-color, #465fff), black 10%);
+  --color-brand-700: color-mix(in srgb, var(--primary-color, #465fff), black 20%);
+  --color-brand-800: color-mix(in srgb, var(--primary-color, #465fff), black 30%);
+  --color-brand-900: color-mix(in srgb, var(--primary-color, #465fff), black 40%);
 
   --color-gray-25: #fcfcfd;
   --color-gray-50: #f9fafb;

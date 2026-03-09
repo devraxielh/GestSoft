@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import toast from "react-hot-toast"
 import ConfirmModal from "@/components/ConfirmModal"
 
@@ -131,6 +131,30 @@ export default function RolesPage() {
         setShowPermsModal(true)
     }
 
+    const groupedPermissions = useMemo(() => {
+        if (!permissionsList || permissionsList.length === 0) return {};
+        return permissionsList.reduce((acc, perm) => {
+            const parts = perm.name.split('_');
+            const action = parts[0]; // e.g. manage
+            const resource = parts.slice(1).join('_') || 'others'; // e.g. users
+            if (!acc[resource]) acc[resource] = [];
+            acc[resource].push(perm);
+            return acc;
+        }, {} as Record<string, Permission[]>);
+    }, [permissionsList]);
+
+    const groupedRolePermissions = useMemo(() => {
+        if (!permsRole?.permissions || permsRole.permissions.length === 0) return {};
+        return permsRole.permissions.reduce((acc, perm) => {
+            const parts = perm.name.split('_');
+            const action = parts[0];
+            const resource = parts.slice(1).join('_') || 'others';
+            if (!acc[resource]) acc[resource] = [];
+            acc[resource].push(perm);
+            return acc;
+        }, {} as Record<string, Permission[]>);
+    }, [permsRole?.permissions]);
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -224,16 +248,7 @@ export default function RolesPage() {
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-3">Permisos Asignados</label>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[50vh] overflow-y-auto pr-2">
-                                        {Object.entries(
-                                            permissionsList.reduce((acc, perm) => {
-                                                const parts = perm.name.split('_');
-                                                const action = parts[0]; // e.g. manage
-                                                const resource = parts.slice(1).join('_') || 'others'; // e.g. users
-                                                if (!acc[resource]) acc[resource] = [];
-                                                acc[resource].push(perm);
-                                                return acc;
-                                            }, {} as Record<string, Permission[]>)
-                                        ).map(([resource, perms]) => {
+                                        {Object.entries(groupedPermissions).map(([resource, perms]) => {
                                             const resNames: Record<string, string> = { users: "Usuarios", roles: "Roles", faculties: "Facultades", programs: "Programas", events: "Eventos", certificates: "Certificados", persons: "Personas", assignments: "Asignaciones", system: "Sistema", permissions: "Permisos", settings: "Configuración" };
                                             const actNames: Record<string, string> = { create: "Crear", read: "Ver", update: "Editar", delete: "Eliminar", manage: "Gestionar", all: "Todo" };
 
@@ -364,16 +379,7 @@ export default function RolesPage() {
                                 <div className="text-center py-12 text-gray-400 text-sm">No hay permisos asignados a este rol</div>
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {Object.entries(
-                                        permsRole.permissions.reduce((acc, perm) => {
-                                            const parts = perm.name.split('_');
-                                            const action = parts[0];
-                                            const resource = parts.slice(1).join('_') || 'others';
-                                            if (!acc[resource]) acc[resource] = [];
-                                            acc[resource].push(perm);
-                                            return acc;
-                                        }, {} as Record<string, Permission[]>)
-                                    ).map(([resource, perms]) => {
+                                    {Object.entries(groupedRolePermissions).map(([resource, perms]) => {
                                         const resNames: Record<string, string> = { users: "Usuarios", roles: "Roles", faculties: "Facultades", programs: "Programas", events: "Eventos", certificates: "Certificados", persons: "Personas", assignments: "Asignaciones", system: "Sistema", permissions: "Permisos", settings: "Configuración" };
                                         const actNames: Record<string, string> = { create: "Crear", read: "Ver", update: "Editar", delete: "Eliminar", manage: "Gestionar", all: "Todo" };
 

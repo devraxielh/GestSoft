@@ -1197,7 +1197,6 @@
                     label: 'Image is decorative'
                 }]
         };
-        // TODO: the original listbox supported styled items but bridge does not seem to support this
         const classList = info.classList.map((items) => ({
             name: 'classes',
             type: 'listbox',

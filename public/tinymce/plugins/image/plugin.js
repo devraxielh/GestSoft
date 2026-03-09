@@ -522,8 +522,6 @@
     const hasUploadUrl = (editor) => isNotEmpty(editor.options.get('images_upload_url'));
     const hasUploadHandler = (editor) => isNonNullable(editor.options.get('images_upload_handler'));
 
-    // TODO: Figure out if these would ever be something other than numbers. This was added in: #TINY-1350
-    const parseIntAndGetMax = (val1, val2) => Math.max(parseInt(val1, 10), parseInt(val2, 10));
     const getImageSize = (url) => new Promise((callback) => {
         const img = document.createElement('img');
         const done = (dimensions) => {
@@ -533,8 +531,8 @@
             callback(dimensions);
         };
         img.addEventListener('load', () => {
-            const width = parseIntAndGetMax(img.width, img.clientWidth);
-            const height = parseIntAndGetMax(img.height, img.clientHeight);
+            const width = Math.max(img.width, img.clientWidth);
+            const height = Math.max(img.height, img.clientHeight);
             const dimensions = { width, height };
             done(Promise.resolve(dimensions));
         });

@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
 
 export async function GET() {
     try {
+        const session = await getServerSession(authOptions)
+        if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+
         const oficinas = await prisma.oficina.findMany({
             orderBy: { id: "asc" },
             include: {
@@ -28,6 +33,9 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
     try {
+        const session = await getServerSession(authOptions)
+        if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+
         const { name, sedeId, description } = await req.json()
         const oficina = await prisma.oficina.create({
             data: {

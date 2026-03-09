@@ -93,7 +93,7 @@ export default async function DashboardPage() {
                             <h3 className="font-semibold">Actividad Reciente</h3>
                         </div>
                         <Link href="/dashboard/asignaciones" className="text-sm font-medium text-brand-600 hover:text-brand-700 hover:underline flex items-center gap-1">
-                            Ver todo <ArrowRight className="w-4 h-4" />
+                            Ver todas <ArrowRight className="w-4 h-4" />
                         </Link>
                     </div>
 

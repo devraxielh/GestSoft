@@ -37,13 +37,15 @@ export async function POST(req: NextRequest) {
             const results = await Promise.allSettled(
                 batch.map(async (assignment) => {
                     const consultaUrl = `${baseUrl}/consulta`
-                    await sendCertificateNotification(
-                        assignment.person.email,
-                        assignment.person.fullName,
-                        assignment.certificate.event.name,
-                        assignment.certificate.participationType,
-                        consultaUrl
-                    )
+                    if (assignment.person.email) {
+                        await sendCertificateNotification(
+                            assignment.person.email as string,
+                            assignment.person.fullName,
+                            assignment.certificate.event.name,
+                            assignment.certificate.participationType,
+                            consultaUrl
+                        )
+                    }
                 })
             )
 

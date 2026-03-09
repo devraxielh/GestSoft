@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     try {
-        const id = parseInt(params.id)
+        const parsedId = parseInt(id)
         const { contractType, dedication, teacherType } = await req.json()
 
         const docente = await prisma.docente.update({
-            where: { id },
+            where: { id: parsedId },
             data: {
                 contractType: contractType || null,
                 dedication: dedication || null,
@@ -22,10 +23,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     try {
-        const id = parseInt(params.id)
-        await prisma.docente.delete({ where: { id } })
+        const parsedId = parseInt(id)
+        await prisma.docente.delete({ where: { id: parsedId } })
         return NextResponse.json({ success: true })
     } catch (e: any) {
         console.error("🚨 Error in DELETE /api/docentes/[id]:", e)

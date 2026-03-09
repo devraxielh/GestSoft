@@ -15,7 +15,7 @@ export async function GET() {
             return NextResponse.json({ error: "No autorizado. Inicie sesión nuevamente." }, { status: 401 })
         }
 
-        const userId = (session.user as any).id
+        const userId = session.user.id
         const userEmail = session.user.email
         console.log("Profile GET: User found in session - ID:", userId, "Email:", userEmail)
 
@@ -29,11 +29,7 @@ export async function GET() {
                     name: true,
                     email: true,
                     image: true,
-                    role: {
-                        select: {
-                            name: true
-                        }
-                    }
+                    roles: { select: { name: true } }
                 }
             })
             console.log("Profile GET: User by ID result:", user ? "FOUND" : "NOT FOUND")
@@ -48,11 +44,7 @@ export async function GET() {
                     name: true,
                     email: true,
                     image: true,
-                    role: {
-                        select: {
-                            name: true
-                        }
-                    }
+                    roles: { select: { name: true } }
                 }
             })
             console.log("Profile GET: User by Email result:", user ? "FOUND" : "NOT FOUND")
@@ -82,7 +74,7 @@ export async function PATCH(request: Request) {
             return NextResponse.json({ error: "No autorizado" }, { status: 401 })
         }
 
-        const userId = (session.user as any).id
+        const userId = session.user.id
         const userEmail = session.user.email
         const body = await request.json()
         const { name, email, password, image } = body

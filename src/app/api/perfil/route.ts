@@ -29,7 +29,7 @@ export async function GET() {
                     name: true,
                     email: true,
                     image: true,
-                    role: {
+                    roles: {
                         select: {
                             name: true
                         }
@@ -48,7 +48,7 @@ export async function GET() {
                     name: true,
                     email: true,
                     image: true,
-                    role: {
+                roles: {
                         select: {
                             name: true
                         }

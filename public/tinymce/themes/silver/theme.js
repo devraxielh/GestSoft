@@ -1321,7 +1321,6 @@
         return fromDom(node);
     };
     const fromDom = (node) => {
-        // TODO: Consider removing this check, but left atm for safety
         if (node === null || node === undefined) {
             throw new Error('Node cannot be null or undefined');
         }

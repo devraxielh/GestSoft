@@ -1,0 +1,218 @@
+
+> certificados-online@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+
+✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+✓ Ready in 1134ms
+○ Compiling /dashboard ...
+⨯ Error [PrismaClientInitializationError]:
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].user.count()` invocation in
+/app/.next/dev/server/chunks/ssr/[root-of-the-server]__541664f5._.js:63:141
+
+  60 const dynamic = 'force-dynamic';
+  61 async function getStats() {
+  62     const [users, persons, events, certificates, assignments, recentAssignments] = await Promise.all([
+→ 63         {imported module ./src/lib/prisma.ts}["prisma"].user.count(
+error: Environment variable not found: DATABASE_URL.
+  -->  schema.prisma:7
+   |
+ 6 |   provider = "mysql"
+ 7 |   url      = env("DATABASE_URL")
+   |
+
+Validation Error Count: 1
+    at <unknown> (src/app/dashboard/page.tsx:9:21)
+    at <unknown> (-->  schema.prisma:7)
+    at async getStats (src/app/dashboard/page.tsx:8:84)
+    at async DashboardPage (src/app/dashboard/page.tsx:27:19)
+   7 | async function getStats() {
+   8 |     const [users, persons, events, certificates, assignments, recentAssignments] = await Promise.all([
+>  9 |         prisma.user.count(),
+     |                     ^
+  10 |         prisma.person.count(),
+  11 |         prisma.event.count(),
+  12 |         prisma.certificate.count(), {
+  clientVersion: '6.19.2',
+  errorCode: undefined,
+  retryable: undefined,
+  digest: '1581366693'
+}
+ GET /dashboard 200 in 4.0s (compile: 3.5s, render: 560ms)
+Config GET error: Error [PrismaClientInitializationError]:
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].setting.findUnique()` invocation in
+/app/.next/dev/server/chunks/[root-of-the-server]__8a1173de._.js:75:165
+
+  72 ;
+  73 async function GET() {
+  74     try {
+→ 75         let config = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].setting.findUnique(
+error: Environment variable not found: DATABASE_URL.
+  -->  schema.prisma:7
+   |
+ 6 |   provider = "mysql"
+ 7 |   url      = env("DATABASE_URL")
+   |
+
+Validation Error Count: 1
+    at <unknown> (src/app/api/configuracion/route.ts:6:43)
+    at <unknown> (-->  schema.prisma:7)
+    at async GET (src/app/api/configuracion/route.ts:6:22)
+  4 | export async function GET() {
+  5 |     try {
+> 6 |         let config = await prisma.setting.findUnique({
+    |                                           ^
+  7 |             where: { id: 1 }
+  8 |         })
+  9 | {
+  clientVersion: '6.19.2',
+  errorCode: undefined,
+  retryable: undefined
+}
+ GET /api/configuracion 500 in 1015ms (compile: 629ms, render: 386ms)
+[next-auth][warn][NEXTAUTH_URL]
+https://next-auth.js.org/warnings#nextauth_url
+[next-auth][warn][NO_SECRET]
+https://next-auth.js.org/warnings#no_secret
+ GET /api/auth/session 200 in 1875ms (compile: 1854ms, render: 21ms)
+ GET / 200 in 611ms (compile: 585ms, render: 26ms)
+Config GET error: Error [PrismaClientInitializationError]:
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].setting.findUnique()` invocation in
+/app/.next/dev/server/chunks/[root-of-the-server]__8a1173de._.js:75:165
+
+  72 ;
+  73 async function GET() {
+  74     try {
+→ 75         let config = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].setting.findUnique(
+error: Environment variable not found: DATABASE_URL.
+  -->  schema.prisma:7
+   |
+ 6 |   provider = "mysql"
+ 7 |   url      = env("DATABASE_URL")
+   |
+
+Validation Error Count: 1
+    at <unknown> (src/app/api/configuracion/route.ts:6:43)
+    at <unknown> (-->  schema.prisma:7)
+    at async GET (src/app/api/configuracion/route.ts:6:22)
+  4 | export async function GET() {
+  5 |     try {
+> 6 |         let config = await prisma.setting.findUnique({
+    |                                           ^
+  7 |             where: { id: 1 }
+  8 |         })
+  9 | {
+  clientVersion: '6.19.2',
+  errorCode: undefined,
+  retryable: undefined
+}
+ GET /api/configuracion 500 in 192ms (compile: 3ms, render: 188ms)
+Config GET error: Error [PrismaClientInitializationError]:
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].setting.findUnique()` invocation in
+/app/.next/dev/server/chunks/[root-of-the-server]__8a1173de._.js:75:165
+
+  72 ;
+  73 async function GET() {
+  74     try {
+→ 75         let config = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].setting.findUnique(
+error: Environment variable not found: DATABASE_URL.
+  -->  schema.prisma:7
+   |
+ 6 |   provider = "mysql"
+ 7 |   url      = env("DATABASE_URL")
+   |
+
+Validation Error Count: 1
+    at <unknown> (src/app/api/configuracion/route.ts:6:43)
+    at <unknown> (-->  schema.prisma:7)
+    at async GET (src/app/api/configuracion/route.ts:6:22)
+  4 | export async function GET() {
+  5 |     try {
+> 6 |         let config = await prisma.setting.findUnique({
+    |                                           ^
+  7 |             where: { id: 1 }
+  8 |         })
+  9 | {
+  clientVersion: '6.19.2',
+  errorCode: undefined,
+  retryable: undefined
+}
+ GET /api/configuracion 500 in 185ms (compile: 3ms, render: 182ms)
+ GET /logo.webp 404 in 532ms (compile: 452ms, render: 80ms)
+ GET / 200 in 82ms (compile: 6ms, render: 76ms)
+Config GET error: Error [PrismaClientInitializationError]:
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].setting.findUnique()` invocation in
+/app/.next/dev/server/chunks/[root-of-the-server]__8a1173de._.js:75:165
+
+  72 ;
+  73 async function GET() {
+  74     try {
+→ 75         let config = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].setting.findUnique(
+error: Environment variable not found: DATABASE_URL.
+  -->  schema.prisma:7
+   |
+ 6 |   provider = "mysql"
+ 7 |   url      = env("DATABASE_URL")
+   |
+
+Validation Error Count: 1
+    at <unknown> (src/app/api/configuracion/route.ts:6:43)
+    at <unknown> (-->  schema.prisma:7)
+    at async GET (src/app/api/configuracion/route.ts:6:22)
+  4 | export async function GET() {
+  5 |     try {
+> 6 |         let config = await prisma.setting.findUnique({
+    |                                           ^
+  7 |             where: { id: 1 }
+  8 |         })
+  9 | {
+  clientVersion: '6.19.2',
+  errorCode: undefined,
+  retryable: undefined
+}
+ GET /api/configuracion 500 in 312ms (compile: 6ms, render: 306ms)
+Config GET error: Error [PrismaClientInitializationError]:
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].setting.findUnique()` invocation in
+/app/.next/dev/server/chunks/[root-of-the-server]__8a1173de._.js:75:165
+
+  72 ;
+  73 async function GET() {
+  74     try {
+→ 75         let config = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].setting.findUnique(
+error: Environment variable not found: DATABASE_URL.
+  -->  schema.prisma:7
+   |
+ 6 |   provider = "mysql"
+ 7 |   url      = env("DATABASE_URL")
+   |
+
+Validation Error Count: 1
+    at <unknown> (src/app/api/configuracion/route.ts:6:43)
+    at <unknown> (-->  schema.prisma:7)
+    at async GET (src/app/api/configuracion/route.ts:6:22)
+  4 | export async function GET() {
+  5 |     try {
+> 6 |         let config = await prisma.setting.findUnique({
+    |                                           ^
+  7 |             where: { id: 1 }
+  8 |         })
+  9 | {
+  clientVersion: '6.19.2',
+  errorCode: undefined,
+  retryable: undefined
+}
+ GET /api/configuracion 500 in 246ms (compile: 4ms, render: 242ms)
+ GET /api/auth/session 200 in 280ms (compile: 269ms, render: 10ms)
+ GET /logo.webp 404 in 53ms (compile: 5ms, render: 49ms)
+ GET /api/auth/providers 200 in 12ms (compile: 3ms, render: 9ms)
+ GET /api/auth/csrf 200 in 12ms (compile: 2ms, render: 10ms)
+ POST /api/auth/callback/credentials 401 in 16ms (compile: 2ms, render: 13ms)
+[?25h

@@ -593,7 +593,6 @@
         }
         return css;
     };
-    // TODO: Input on this callback should really be validated
     const createImageList = (editor, callback) => {
         const imageList = getImageList(editor);
         if (isString(imageList)) {
@@ -602,15 +601,19 @@
                 .then((res) => {
                 if (res.ok) {
                     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                    res.json().then(callback);
+                    res.json().then((data) => {
+                        callback(Array.isArray(data) ? data : []);
+                    });
                 }
             });
         }
         else if (isFunction(imageList)) {
-            imageList(callback);
+            imageList((data) => {
+                callback(Array.isArray(data) ? data : []);
+            });
         }
         else {
-            callback(imageList);
+            callback(Array.isArray(imageList) ? imageList : []);
         }
     };
     const waitLoadImage = (editor, data, imgElm) => {

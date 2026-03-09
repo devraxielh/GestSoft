@@ -10,6 +10,12 @@ export default function ConfiguracionesPage() {
     const [uploadingLogo, setUploadingLogo] = useState(false)
     const [currentLogo, setCurrentLogo] = useState("/logo.webp")
     const [primaryColor, setPrimaryColor] = useState("#465fff")
+    const [secondaryColor, setSecondaryColor] = useState("#475467")
+    const [successColor, setSuccessColor] = useState("#12b76a")
+    const [confirmColor, setConfirmColor] = useState("#f79009")
+    const [groqApiKey, setGroqApiKey] = useState("")
+    const [showGroqKey, setShowGroqKey] = useState(false)
+    const [groqModel, setGroqModel] = useState("llama-3.3-70b-versatile")
 
     const [smtpForm, setSmtpForm] = useState({
         host: "",
@@ -43,6 +49,11 @@ export default function ConfiguracionesPage() {
                         from: data.smtpFrom || ""
                     })
                     setPrimaryColor(data.primaryColor || "#465fff")
+                    setSecondaryColor(data.secondaryColor || "#475467")
+                    setSuccessColor(data.successColor || "#12b76a")
+                    setConfirmColor(data.confirmColor || "#f79009")
+                    setGroqApiKey(data.groqApiKey || "")
+                    setGroqModel(data.groqModel || "llama-3.3-70b-versatile")
                 }
             } catch (error) {
                 console.error("Error loading config:", error)
@@ -70,7 +81,12 @@ export default function ConfiguracionesPage() {
                     smtpPass: smtpForm.pass,
                     smtpFrom: smtpForm.from,
                     logoUrl: currentLogo,
-                    primaryColor
+                    primaryColor,
+                    secondaryColor,
+                    successColor,
+                    confirmColor,
+                    groqApiKey,
+                    groqModel
                 })
             })
 
@@ -78,7 +94,7 @@ export default function ConfiguracionesPage() {
                 toast.success("Configuración guardada correctamente")
                 // Trigger instant theme and favicon update
                 window.dispatchEvent(new CustomEvent('config-updated', {
-                    detail: { primaryColor, logoUrl: currentLogo }
+                    detail: { primaryColor, secondaryColor, successColor, confirmColor, logoUrl: currentLogo }
                 }));
             } else {
                 const data = await res.json()
@@ -178,16 +194,16 @@ export default function ConfiguracionesPage() {
                         />
                     </div>
 
-                    <div className="mb-8 max-w-md">
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Color de Marca (Tema)</label>
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Color de Marca (Tema Primario)</label>
                         <div className="flex items-center gap-4">
                             <input
                                 type="color"
                                 value={primaryColor}
                                 onChange={e => setPrimaryColor(e.target.value)}
-                                className="w-12 h-12 rounded-lg cursor-pointer border border-gray-200 bg-white p-1 shadow-theme-xs"
+                                className="w-12 h-12 rounded-lg cursor-pointer border border-gray-200 bg-white p-1 shadow-theme-xs flex-shrink-0"
                             />
-                            <div className="flex-1">
+                            <div className="flex-1 max-w-xs">
                                 <input
                                     type="text"
                                     value={primaryColor}
@@ -197,7 +213,69 @@ export default function ConfiguracionesPage() {
                                 />
                             </div>
                         </div>
-                        <p className="text-xs text-gray-400 mt-2">Este color se aplicará globalmente a botones, enlaces y acentos visuales.</p>
+                        <p className="text-xs text-gray-400 mt-2 font-light">Se aplicará globalmente a botones principales, enlaces y acentos visuales.</p>
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Color Secundario</label>
+                        <div className="flex items-center gap-4">
+                            <input
+                                type="color"
+                                value={secondaryColor}
+                                onChange={e => setSecondaryColor(e.target.value)}
+                                className="w-12 h-12 rounded-lg cursor-pointer border border-gray-200 bg-white p-1 shadow-theme-xs flex-shrink-0"
+                            />
+                            <div className="flex-1 max-w-xs">
+                                <input
+                                    type="text"
+                                    value={secondaryColor}
+                                    onChange={e => setSecondaryColor(e.target.value)}
+                                    className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-xs text-gray-500 font-mono focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 transition-all uppercase"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Color de Éxito (Aprobación)</label>
+                        <div className="flex items-center gap-4">
+                            <input
+                                type="color"
+                                value={successColor}
+                                onChange={e => setSuccessColor(e.target.value)}
+                                className="w-12 h-12 rounded-lg cursor-pointer border border-gray-200 bg-white p-1 shadow-theme-xs flex-shrink-0"
+                            />
+                            <div className="flex-1 max-w-xs">
+                                <input
+                                    type="text"
+                                    value={successColor}
+                                    onChange={e => setSuccessColor(e.target.value)}
+                                    className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-xs text-gray-500 font-mono focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 transition-all uppercase"
+                                />
+                            </div>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-2 font-light">Color para badges de estado "Atendido" o toast de éxito.</p>
+                    </div>
+
+                    <div className="mb-8">
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Color de Confirmación / Alerta</label>
+                        <div className="flex items-center gap-4">
+                            <input
+                                type="color"
+                                value={confirmColor}
+                                onChange={e => setConfirmColor(e.target.value)}
+                                className="w-12 h-12 rounded-lg cursor-pointer border border-gray-200 bg-white p-1 shadow-theme-xs flex-shrink-0"
+                            />
+                            <div className="flex-1 max-w-xs">
+                                <input
+                                    type="text"
+                                    value={confirmColor}
+                                    onChange={e => setConfirmColor(e.target.value)}
+                                    className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-xs text-gray-500 font-mono focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 transition-all uppercase"
+                                />
+                            </div>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-2 font-light">Color utilizado para acciones que requieran atención (Warn) o confirmación.</p>
                     </div>
 
                     <div className="flex flex-col md:flex-row items-center gap-8 border-t border-gray-50 pt-8">
@@ -346,6 +424,69 @@ export default function ConfiguracionesPage() {
                             </button>
                         </div>
                     </form>
+                </div>
+
+                {/* AI Settings */}
+                <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-50 text-purple-500">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-800">Inteligencia Artificial</h3>
+                            <p className="text-xs text-gray-400">Configuración de Groq para asistente de redacción</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">API Key de Groq</label>
+                            <div className="relative">
+                                <input
+                                    type={showGroqKey ? "text" : "password"}
+                                    value={groqApiKey}
+                                    onChange={e => setGroqApiKey(e.target.value)}
+                                    className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 pr-10 text-sm text-gray-800 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 transition-all font-mono"
+                                    placeholder="gsk_..."
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowGroqKey(!showGroqKey)}
+                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                    {showGroqKey ? (
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                                        </svg>
+                                    ) : (
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    )}
+                                </button>
+                            </div>
+                            <p className="text-xs text-gray-400 mt-2">Obtén tu API Key en <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-brand-500 hover:underline">console.groq.com/keys</a>. Se usa para el asistente IA en el editor de documentos.</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Modelo de IA</label>
+                            <select
+                                value={groqModel}
+                                onChange={e => setGroqModel(e.target.value)}
+                                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 transition-all"
+                            >
+                                <option value="llama-3.3-70b-versatile">LLaMA 3.3 70B Versatile (Recomendado)</option>
+                                <option value="llama-3.1-8b-instant">LLaMA 3.1 8B Instant (Rápido)</option>
+                                <option value="llama3-70b-8192">LLaMA 3 70B</option>
+                                <option value="llama3-8b-8192">LLaMA 3 8B</option>
+                                <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+                                <option value="gemma2-9b-it">Gemma 2 9B</option>
+                            </select>
+                            <p className="text-xs text-gray-400 mt-2">Modelos más grandes generan mejor contenido pero son más lentos.</p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Database Info */}

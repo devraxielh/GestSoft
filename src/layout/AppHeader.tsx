@@ -29,11 +29,11 @@ const AppHeader: React.FC = () => {
     }, []);
 
     return (
-        <header className="sticky top-0 flex w-full bg-white border-gray-200 z-[99999] lg:border-b">
+        <header className="sticky top-0 flex w-full bg-white z-[99999] border-b border-gray-100 shadow-sm shadow-gray-100/50">
             <div className="flex items-center justify-between grow px-4 py-3 lg:px-6 lg:py-4">
                 <div className="flex items-center gap-4">
                     <button
-                        className="flex items-center justify-center w-10 h-10 text-gray-500 rounded-lg border border-gray-200 lg:h-11 lg:w-11 hover:bg-gray-50 transition-colors"
+                        className="flex items-center justify-center w-10 h-10 text-secondary-500 rounded-lg lg:h-11 lg:w-11 hover:bg-secondary-50 transition-colors"
                         onClick={handleToggle}
                         aria-label="Toggle Sidebar"
                     >
@@ -54,7 +54,7 @@ const AppHeader: React.FC = () => {
                     <div className="relative">
                         <button
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="flex items-center gap-3 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                            className="flex items-center gap-3 text-sm font-medium text-secondary-700 hover:text-secondary-900 transition-colors"
                         >
                             <div className="w-10 h-10 rounded-full bg-brand-500 flex items-center justify-center text-white font-semibold text-sm overflow-hidden">
                                 {session?.user?.image ? (
@@ -64,30 +64,30 @@ const AppHeader: React.FC = () => {
                                 )}
                             </div>
                             <span className="hidden lg:block">
-                                <span className="block text-sm font-medium text-gray-700">
+                                <span className="block text-sm font-medium text-secondary-700">
                                     {session?.user?.name || "Usuario"}
                                 </span>
-                                <span className="block text-xs text-gray-500">
+                                <span className="block text-xs text-secondary-500">
                                     {(session?.user as any)?.role || "Sin rol"}
                                 </span>
                             </span>
-                            <svg className="hidden lg:block w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="hidden lg:block w-4 h-4 text-secondary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
 
                         {isDropdownOpen && (
-                            <div className="absolute right-0 mt-3 w-56 rounded-xl border border-gray-200 bg-white p-2 shadow-theme-lg">
-                                <div className="px-3 py-2 border-b border-gray-100 mb-1">
-                                    <p className="text-sm font-medium text-gray-800">{session?.user?.name}</p>
-                                    <p className="text-xs text-gray-500">{session?.user?.email}</p>
+                            <div className="absolute right-0 mt-3 w-56 rounded-xl border border-secondary-200 bg-white p-2 shadow-theme-lg">
+                                <div className="px-3 py-2 border-b border-secondary-100 mb-1">
+                                    <p className="text-sm font-medium text-secondary-800">{session?.user?.name}</p>
+                                    <p className="text-xs text-secondary-500">{session?.user?.email}</p>
                                 </div>
                                 <Link
                                     href="/dashboard/perfil"
                                     onClick={() => setIsDropdownOpen(false)}
-                                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-secondary-700 hover:bg-secondary-50 transition-colors"
                                 >
-                                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-5 h-5 text-secondary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
                                     Mi Perfil
@@ -95,9 +95,9 @@ const AppHeader: React.FC = () => {
                                 <Link
                                     href="/dashboard/configuraciones"
                                     onClick={() => setIsDropdownOpen(false)}
-                                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-secondary-700 hover:bg-secondary-50 transition-colors"
                                 >
-                                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-5 h-5 text-secondary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924-1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>

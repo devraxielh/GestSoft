@@ -29,37 +29,61 @@ model User {
   password  String
   name      String
   active    Boolean  @default(true)
-  roleId    Int
   createdAt DateTime @default(now())
   image     String?
-  role      Role     @relation(fields: [roleId], references: [id])
-
-  @@index([roleId], map: "User_roleId_fkey")
+  roles     Role[]
 }
 
 model Faculty {
   id       Int       @id @default(autoincrement())
   name     String    @unique
+  sedeId   Int?
   address  String?
-  deanName String    @default("Sin asignar")
+  deanId   Int?
   email    String?
   phone    String?
+  presentation String?  @db.LongText
   programs Program[]
+
+  sede     Sede?     @relation(fields: [sedeId], references: [id], onDelete: Cascade)
+  dean     Person?   @relation("FacultyDean", fields: [deanId], references: [id])
+  @@index([sedeId])
+  @@index([deanId])
 }
 
 model Program {
   id           Int      @id @default(autoincrement())
   name         String   @unique
+  type         String?
+  status       String?
   facultyId    Int
   address      String?
-  directorName String   @default("Sin asignar")
+  directorId   Int?
   email        String?
   phone        String?
+  presentation String?  @db.LongText
   persons      Person[]
   theses       Thesis[]
   faculty      Faculty  @relation(fields: [facultyId], references: [id])
+  director     Person?  @relation("ProgramDirector", fields: [directorId], references: [id])
+  docentes     Docente[]
+  documentos   Documento[]
 
   @@index([facultyId], map: "Program_facultyId_fkey")
+}
+
+model Docente {
+  id              Int      @id @default(autoincrement())
+  personId        Int
+  programId       Int
+  contractType    String?
+  dedication      String?
+  teacherType     String?
+  person          Person   @relation(fields: [personId], references: [id])
+  program         Program  @relation(fields: [programId], references: [id])
+
+  @@index([personId])
+  @@index([programId])
 }
 
 model Person {
@@ -67,7 +91,7 @@ model Person {
   idType         String
   identification String                  @unique
   phone          String?
-  email          String
+  email          String?
   createdAt      DateTime                @default(now())
   programId      Int?
   fullName       String
@@ -77,6 +101,12 @@ model Person {
   studentTheses  ThesisStudent[]
   advisorTheses  ThesisAdvisor[]
   juryTheses     ThesisJury[]
+
+  sedesAsRector  Sede[]                  @relation("SedeRector")
+  directivos     Directivo[]
+  facultiesAsDean Faculty[]              @relation("FacultyDean")
+  programsAsDirector Program[]           @relation("ProgramDirector")
+  docenteInfo    Docente[]
 
   @@index([programId], map: "Person_programId_fkey")
 }
@@ -190,5 +220,86 @@ model Setting {
   smtpFrom    String?
   logoUrl     String?  @default("/logo.webp")
   primaryColor String?  @default("#465fff")
+  secondaryColor String? @default("#475467")
+  successColor String? @default("#12b76a")
+  confirmColor String? @default("#f79009")
+  groqApiKey   String?
+  groqModel    String?  @default("llama-3.3-70b-versatile")
   updatedAt   DateTime @updatedAt
+}
+
+model Sede {
+  id                     Int      @id @default(autoincrement())
+  name                   String   @unique
+  rectorId               Int?
+  address                String?
+  email                  String?
+  phone                  String?
+  contextoInstitucional  String?  @db.Text
+  misionInstitucional    String?  @db.Text
+  visionInstitucional    String?  @db.Text
+  createdAt              DateTime @default(now())
+  
+  rector     Person?     @relation("SedeRector", fields: [rectorId], references: [id])
+  oficinas   Oficina[]
+  facultades Faculty[]
+
+  @@index([rectorId])
+}
+
+model Oficina {
+  id          Int         @id @default(autoincrement())
+  name        String      @unique
+  sedeId      Int
+  description String?     @db.Text
+  createdAt   DateTime    @default(now())
+
+  sede        Sede        @relation(fields: [sedeId], references: [id], onDelete: Cascade)
+  directivos  Directivo[]
+
+  @@index([sedeId])
+}
+
+model Directivo {
+  id          Int      @id @default(autoincrement())
+  oficinaId   Int
+  personId    Int
+  cargo       String   @default("Integrante") // Director, Integrante, etc.
+  joinedAt    DateTime @default(now())
+
+  oficina     Oficina  @relation(fields: [oficinaId], references: [id], onDelete: Cascade)
+  person      Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([oficinaId, personId])
+  @@index([oficinaId])
+  @@index([personId])
+}
+
+model Factor {
+  id          Int      @id @default(autoincrement())
+  number      Int      @unique
+  name        String   @unique
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+}
+
+model Documento {
+  id                     Int      @id @default(autoincrement())
+  type                   String   // "Registro Calificado" or "Documento de acreditación"
+  year                   Int
+  programId              Int
+  description            String?  @db.Text
+  status                 String?
+  content                String?  @db.LongText
+  coverPage              String?  @db.LongText
+  contextoInstitucional  String?  @db.LongText
+  misionInstitucional    String?  @db.LongText
+  visionInstitucional    String?  @db.LongText
+  presentacionFacultad   String?  @db.LongText
+  presentacionPrograma   String?  @db.LongText
+  createdAt              DateTime @default(now())
+
+  program     Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@index([programId])
 }

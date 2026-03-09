@@ -4,16 +4,25 @@ import { prisma } from "@/lib/prisma"
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params
-        const { name, deanName, address, email, phone } = await req.json()
+        const body = await req.json()
+        const { name, deanId, address, email, phone, sedeId, presentation } = body
+
+        const dataToUpdate: any = {
+            name,
+            deanId: deanId ? parseInt(deanId, 10) : null,
+            address: address || null,
+            email: email || null,
+            phone: phone || null,
+            presentation: presentation !== undefined ? (presentation || null) : undefined
+        }
+
+        if (sedeId) {
+            dataToUpdate.sedeId = parseInt(sedeId, 10)
+        }
+
         const faculty = await prisma.faculty.update({
             where: { id: parseInt(id) },
-            data: {
-                name,
-                deanName: deanName || "Sin asignar",
-                address: address || null,
-                email: email || null,
-                phone: phone || null
-            },
+            data: dataToUpdate,
         })
         return NextResponse.json(faculty)
     } catch {

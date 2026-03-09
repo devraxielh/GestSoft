@@ -4,6 +4,7 @@ import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 
 export default function Home() {
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -24,6 +25,8 @@ export default function Home() {
         }
       } catch (err) {
         console.error("Error fetching config:", err)
+      } finally {
+        setIsInitialLoading(false)
       }
     }
     fetchConfig()
@@ -34,6 +37,17 @@ export default function Home() {
     const res = await signIn("credentials", { email, password, redirect: false })
     if (res?.error) { setError("Credenciales incorrectas"); setLoading(false) }
     else router.push("/dashboard")
+  }
+
+  if (isInitialLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 font-outfit">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-brand-200 border-t-brand-500 rounded-full animate-spin"></div>
+          <p className="text-gray-500 animate-pulse font-medium">Cargando sistema...</p>
+        </div>
+      </div>
+    )
   }
 
   return (

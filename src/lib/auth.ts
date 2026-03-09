@@ -16,7 +16,7 @@ export const authOptions: AuthOptions = {
 
                 const user = await prisma.user.findUnique({
                     where: { email: credentials.email },
-                    include: { role: { include: { permissions: true } } }
+                    include: { roles: { include: { permissions: true } } }
                 })
 
                 if (!user || !user.active) return null
@@ -24,12 +24,15 @@ export const authOptions: AuthOptions = {
                 const isValid = await bcrypt.compare(credentials.password, user.password)
                 if (!isValid) return null
 
+                const rolesConcat = user.roles.map(r => r.name).join(", ")
+                const allPermissions = Array.from(new Set(user.roles.flatMap(r => r.permissions.map((p: any) => p.name))))
+
                 return {
                     id: String(user.id),
                     email: user.email,
                     name: user.name,
-                    role: user.role.name,
-                    permissions: user.role.permissions.map((p: any) => p.name),
+                    role: rolesConcat,
+                    permissions: allPermissions,
                     image: user.image
                 }
             }

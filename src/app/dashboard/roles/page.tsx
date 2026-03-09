@@ -6,7 +6,7 @@ import ConfirmModal from "@/components/ConfirmModal"
 
 interface Permission { id: number; name: string; description?: string }
 interface Role { id: number; name: string; _count?: { users: number }; permissions?: Permission[] }
-interface RoleUser { id: number; name: string; email: string; active: boolean; roleId: number }
+interface RoleUser { id: number; name: string; email: string; active: boolean; roles: Role[] }
 
 export default function RolesPage() {
     const [roles, setRoles] = useState<Role[]>([])
@@ -116,7 +116,7 @@ export default function RolesPage() {
         try {
             const res = await fetch("/api/usuarios")
             const all: RoleUser[] = await res.json().catch(() => [])
-            setViewerUsers(all.filter(u => u.roleId === role.id))
+            setViewerUsers(all.filter(u => u.roles && u.roles.some(r => r.id === role.id)))
         } catch { toast.error("Error cargando usuarios") }
         setViewerLoading(false)
     }

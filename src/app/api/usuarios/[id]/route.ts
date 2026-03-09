@@ -9,8 +9,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         const data: any = {
             name: body.name,
             email: body.email,
-            roleId: parseInt(body.roleId),
             active: body.active,
+        }
+        if (body.roleIds) {
+            data.roles = { set: body.roleIds.map((id: number) => ({ id: Number(id) })) }
         }
         if (body.password) {
             data.password = await bcrypt.hash(body.password, 10)
@@ -18,7 +20,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         const user = await prisma.user.update({
             where: { id: parseInt(id) },
             data,
-            include: { role: true },
+            include: { roles: true },
         })
         return NextResponse.json({ ...user, password: undefined })
     } catch {

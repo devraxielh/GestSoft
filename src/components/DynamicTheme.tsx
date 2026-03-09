@@ -2,7 +2,12 @@
 import { useEffect, useState } from "react"
 
 export default function DynamicTheme() {
-    const [color, setColor] = useState("#465fff")
+    const [theme, setTheme] = useState({
+        primaryColor: "#465fff",
+        secondaryColor: "#475467",
+        successColor: "#12b76a",
+        confirmColor: "#f79009"
+    })
 
     useEffect(() => {
         const fetchConfig = async () => {
@@ -10,16 +15,25 @@ export default function DynamicTheme() {
                 const res = await fetch("/api/configuracion")
                 if (res.ok) {
                     const data = await res.json()
-                    if (data.primaryColor) {
-                        setColor(data.primaryColor)
-                        document.documentElement.style.setProperty('--primary-color', data.primaryColor)
+                    const newTheme = {
+                        primaryColor: data.primaryColor || "#465fff",
+                        secondaryColor: data.secondaryColor || "#475467",
+                        successColor: data.successColor || "#12b76a",
+                        confirmColor: data.confirmColor || "#f79009"
                     }
+                    setTheme(newTheme)
+
+                    document.documentElement.style.setProperty('--primary-color', newTheme.primaryColor)
+                    document.documentElement.style.setProperty('--secondary-color', newTheme.secondaryColor)
+                    document.documentElement.style.setProperty('--success-color', newTheme.successColor)
+                    document.documentElement.style.setProperty('--confirm-color', newTheme.confirmColor)
+
                     if (data.logoUrl) {
                         updateFavicon(data.logoUrl)
                     }
                     // Dispatch an event with the fetched configuration
                     window.dispatchEvent(new CustomEvent('config-updated', {
-                        detail: { primaryColor: data.primaryColor, logoUrl: data.logoUrl }
+                        detail: { ...newTheme, logoUrl: data.logoUrl }
                     }));
                 }
             } catch (err) {
@@ -30,12 +44,19 @@ export default function DynamicTheme() {
 
         // Listen for internal configuration updates to sync instantly
         const handleConfigUpdate = (event: any) => {
-            if (event.detail?.primaryColor) {
-                setColor(event.detail.primaryColor)
-                document.documentElement.style.setProperty('--primary-color', event.detail.primaryColor)
+            const updates = event.detail
+            if (updates) {
+                setTheme(prev => {
+                    const next = { ...prev, ...updates }
+                    if (updates.primaryColor) document.documentElement.style.setProperty('--primary-color', updates.primaryColor)
+                    if (updates.secondaryColor) document.documentElement.style.setProperty('--secondary-color', updates.secondaryColor)
+                    if (updates.successColor) document.documentElement.style.setProperty('--success-color', updates.successColor)
+                    if (updates.confirmColor) document.documentElement.style.setProperty('--confirm-color', updates.confirmColor)
+                    return next
+                })
             }
-            if (event.detail?.logoUrl) {
-                updateFavicon(event.detail.logoUrl)
+            if (updates?.logoUrl) {
+                updateFavicon(updates.logoUrl)
             }
         }
 
@@ -56,7 +77,10 @@ export default function DynamicTheme() {
     return (
         <style jsx global>{`
             :root {
-                --primary-color: ${color};
+                --primary-color: ${theme.primaryColor};
+                --secondary-color: ${theme.secondaryColor};
+                --success-color: ${theme.successColor};
+                --confirm-color: ${theme.confirmColor};
             }
         `}</style>
     )

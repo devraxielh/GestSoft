@@ -4,7 +4,7 @@ import toast from "react-hot-toast"
 import ConfirmModal from "@/components/ConfirmModal"
 
 interface Role { id: number; name: string }
-interface User { id: number; name: string; email: string; active: boolean; roleId: number; role: Role }
+interface User { id: number; name: string; email: string; active: boolean; roles: Role[] }
 
 export default function UsuariosPage() {
     const [users, setUsers] = useState<User[]>([])
@@ -12,7 +12,7 @@ export default function UsuariosPage() {
     const [loading, setLoading] = useState(true)
     const [showModal, setShowModal] = useState(false)
     const [editingUser, setEditingUser] = useState<User | null>(null)
-    const [form, setForm] = useState({ name: "", email: "", password: "", roleId: "", active: true })
+    const [form, setForm] = useState<{ name: string; email: string; password?: string; roleIds: number[]; active: boolean }>({ name: "", email: "", password: "", roleIds: [], active: true })
     const [error, setError] = useState("")
     const [searchName, setSearchName] = useState("")
     const [filterRole, setFilterRole] = useState("")
@@ -26,7 +26,7 @@ export default function UsuariosPage() {
 
     const filteredUsers = users.filter(u => {
         if (searchName && !u.name.toLowerCase().includes(searchName.toLowerCase()) && !u.email.toLowerCase().includes(searchName.toLowerCase())) return false;
-        if (filterRole && u.roleId.toString() !== filterRole) return false;
+        if (filterRole && !u.roles.some(r => r.id.toString() === filterRole)) return false;
         if (filterStatus) {
             const isActive = filterStatus === "active";
             if (u.active !== isActive) return false;
@@ -44,7 +44,7 @@ export default function UsuariosPage() {
         const res = await fetch(url, { method: editingUser ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
         if (res.ok) {
             toast.success(editingUser ? "Usuario actualizado" : "Usuario creado", { style: { background: '#F0FDF4', color: '#166534', border: '1px solid #4ADE80' }, iconTheme: { primary: '#22C55E', secondary: '#F0FDF4' } })
-            setShowModal(false); setEditingUser(null); setForm({ name: "", email: "", password: "", roleId: "", active: true }); fetchData()
+            setShowModal(false); setEditingUser(null); setForm({ name: "", email: "", password: "", roleIds: [], active: true }); fetchData()
         } else {
             toast.error("Error al guardar el usuario", { style: { background: '#FEF2F2', color: '#991B1B', border: '1px solid #F87171' } })
             setError("Error al guardar el usuario")
@@ -96,8 +96,8 @@ export default function UsuariosPage() {
             toast.error("Error al cambiar estado")
         }
     }
-    const openCreate = () => { setEditingUser(null); setForm({ name: "", email: "", password: "", roleId: roles[0]?.id?.toString() || "", active: true }); setError(""); setShowModal(true) }
-    const openEdit = (u: User) => { setEditingUser(u); setForm({ name: u.name, email: u.email, password: "", roleId: u.roleId.toString(), active: u.active }); setError(""); setShowModal(true) }
+    const openCreate = () => { setEditingUser(null); setForm({ name: "", email: "", password: "", roleIds: [], active: true }); setError(""); setShowModal(true) }
+    const openEdit = (u: User) => { setEditingUser(u); setForm({ name: u.name, email: u.email, password: "", roleIds: u.roles.map(r => r.id), active: u.active }); setError(""); setShowModal(true) }
 
     const toggleUserSelection = (id: number) => setSelectedUsers(prev => prev.includes(id) ? prev.filter(uid => uid !== id) : [...prev, id])
     const toggleAllUsers = () => selectedUsers.length === filteredUsers.length ? setSelectedUsers([]) : setSelectedUsers(filteredUsers.map(u => u.id))
@@ -160,7 +160,13 @@ export default function UsuariosPage() {
                                         <td className="px-4 py-4"><input type="checkbox" checked={selectedUsers.includes(user.id)} onChange={() => toggleUserSelection(user.id)} className="w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/10" /></td>
                                         <td className="px-6 py-4 text-sm font-medium text-gray-800">{user.name}</td>
                                         <td className="px-6 py-4 text-sm text-gray-500">{user.email}</td>
-                                        <td className="px-6 py-4"><span className="inline-flex items-center rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-600">{user.role?.name}</span></td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex flex-wrap gap-1">
+                                                {user.roles && user.roles.length > 0 ? user.roles.map(r => (
+                                                    <span key={r.id} className="inline-flex items-center rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-600 border border-brand-100">{r.name}</span>
+                                                )) : <span className="text-gray-400 italic text-xs">Sin roles</span>}
+                                            </div>
+                                        </td>
                                         <td className="px-6 py-4"><button onClick={() => toggleActive(user)} className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors ${user.active ? "bg-success-50 text-success-600 hover:bg-success-100" : "bg-error-50 text-error-600 hover:bg-error-100"}`}>{user.active ? "● Activo" : "● Inactivo"}</button></td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="inline-flex items-center gap-1">
@@ -185,7 +191,28 @@ export default function UsuariosPage() {
                             <div><label className="block text-sm font-medium text-gray-700 mb-2">Nombre</label><input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 shadow-theme-xs" placeholder="Nombre" /></div>
                             <div><label className="block text-sm font-medium text-gray-700 mb-2">Email</label><input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 shadow-theme-xs" placeholder="correo@ejemplo.com" /></div>
                             <div><label className="block text-sm font-medium text-gray-700 mb-2">Contraseña {editingUser && <span className="text-gray-400 font-normal">(vacío = sin cambiar)</span>}</label><input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} {...(!editingUser && { required: true })} className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 shadow-theme-xs" placeholder="••••••••" /></div>
-                            <div><label className="block text-sm font-medium text-gray-700 mb-2">Rol</label><select value={form.roleId} onChange={e => setForm({ ...form, roleId: e.target.value })} required className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 shadow-theme-xs"><option value="">Seleccione un rol</option>{roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Roles</label>
+                                <div className="space-y-2 max-h-48 overflow-y-auto w-full rounded-lg border border-gray-200 bg-gray-50 p-4">
+                                    {roles.map(r => (
+                                        <label key={r.id} className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={form.roleIds.includes(r.id)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setForm({ ...form, roleIds: [...form.roleIds, r.id] })
+                                                    } else {
+                                                        setForm({ ...form, roleIds: form.roleIds.filter(id => id !== r.id) })
+                                                    }
+                                                }}
+                                                className="w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/10"
+                                            />
+                                            <span className="text-sm text-gray-700">{r.name}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
                             <div className="flex items-center gap-3"><input type="checkbox" id="active" checked={form.active} onChange={e => setForm({ ...form, active: e.target.checked })} className="w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/10" /><label htmlFor="active" className="text-sm text-gray-700">Activo</label></div>
                             <div className="flex gap-3 pt-2">
                                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-theme-xs transition-colors">Cancelar</button>

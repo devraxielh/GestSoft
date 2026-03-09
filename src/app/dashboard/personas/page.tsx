@@ -1,12 +1,10 @@
 "use client"
 import { useState, useEffect, useCallback, useRef } from "react"
 import ConfirmModal from "@/components/ConfirmModal"
-import SearchableSelect from "@/components/SearchableSelect"
 import * as XLSX from "xlsx"
 import toast from "react-hot-toast"
 
-interface Program { id: number; name: string }
-interface Person { id: number; fullName: string; idType: string; identification: string; phone: string | null; email: string; programId: number | null; program?: Program }
+interface Person { id: number; fullName: string; idType: string; identification: string; phone: string | null; email: string | null; }
 const ID_TYPES = ["CC", "TI", "CE", "Pasaporte"]
 
 export default function PersonasPage() {
@@ -15,9 +13,7 @@ export default function PersonasPage() {
     const [showModal, setShowModal] = useState(false)
     const [editingPerson, setEditingPerson] = useState<Person | null>(null)
     const [search, setSearch] = useState("")
-    const [programFilter, setProgramFilter] = useState("")
-    const [programs, setPrograms] = useState<Program[]>([])
-    const [form, setForm] = useState({ fullName: "", idType: "CC", identification: "", phone: "", email: "", programId: "" })
+    const [form, setForm] = useState({ fullName: "", idType: "CC", identification: "", phone: "", email: "" })
     const [error, setError] = useState("")
     const [confirmAction, setConfirmAction] = useState<Person | null>(null)
     const [showImportModal, setShowImportModal] = useState(false)
@@ -29,13 +25,12 @@ export default function PersonasPage() {
     const [isDeletingBatch, setIsDeletingBatch] = useState(false)
     const itemsPerPage = 20
     const fileInputRef = useRef<HTMLInputElement>(null)
-    useEffect(() => { setCurrentPage(1); setSelectedIds([]) }, [search, programFilter])
+    useEffect(() => { setCurrentPage(1); setSelectedIds([]) }, [search])
 
     const fetchData = useCallback(async () => {
         try {
-            const [perRes, progRes] = await Promise.all([fetch("/api/personas"), fetch("/api/programas")])
+            const perRes = await fetch("/api/personas")
             setPersons(await perRes.json().catch(() => []))
-            setPrograms(await progRes.json().catch(() => []))
         } catch (e) { console.error(e) } finally { setLoading(false) }
     }, [])
     useEffect(() => { fetchData() }, [fetchData])
@@ -46,7 +41,7 @@ export default function PersonasPage() {
         const res = await fetch(url, { method: editingPerson ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, phone: form.phone || null }) })
         if (res.ok) {
             toast.success(editingPerson ? "Persona actualizada" : "Persona creada", { style: { background: '#F0FDF4', color: '#166534', border: '1px solid #4ADE80' }, iconTheme: { primary: '#22C55E', secondary: '#F0FDF4' } })
-            setShowModal(false); setEditingPerson(null); setForm({ fullName: "", idType: "CC", identification: "", phone: "", email: "", programId: "" }); fetchData()
+            setShowModal(false); setEditingPerson(null); setForm({ fullName: "", idType: "CC", identification: "", phone: "", email: "" }); fetchData()
         } else {
             const data = await res.json().catch(() => ({}))
             const err = data.error || "Error al guardar"
@@ -90,13 +85,11 @@ export default function PersonasPage() {
         }
     }
 
-    const openCreate = () => { setEditingPerson(null); setForm({ fullName: "", idType: "CC", identification: "", phone: "", email: "", programId: "" }); setError(""); setShowModal(true) }
-    const openEdit = (p: Person) => { setEditingPerson(p); setForm({ fullName: p.fullName, idType: p.idType, identification: p.identification, phone: p.phone || "", email: p.email, programId: p.programId ? String(p.programId) : "" }); setError(""); setShowModal(true) }
-    const filtered = persons.filter(p => {
-        const matchesSearch = `${p.fullName} ${p.identification} ${p.email}`.toLowerCase().includes(search.toLowerCase());
-        const matchesProgram = programFilter ? String(p.programId) === programFilter : true;
-        return matchesSearch && matchesProgram;
-    })
+    const openCreate = () => { setEditingPerson(null); setForm({ fullName: "", idType: "CC", identification: "", phone: "", email: "" }); setError(""); setShowModal(true) }
+    const openEdit = (p: Person) => { setEditingPerson(p); setForm({ fullName: p.fullName, idType: p.idType, identification: p.identification, phone: p.phone || "", email: p.email || "" }); setError(""); setShowModal(true) }
+    const filtered = persons.filter(p =>
+        `${p.fullName} ${p.identification} ${p.email}`.toLowerCase().includes(search.toLowerCase())
+    )
     const inputCls = "w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 shadow-theme-xs"
 
     const handleFileUpload = (file: File) => {
@@ -112,8 +105,8 @@ export default function PersonasPage() {
     }
 
     const downloadTemplate = () => {
-        const ws = XLSX.utils.json_to_sheet([{ Nombre_Completo: "Juan Pérez", tipo_id: "CC", identificacion: "123456789", telefono: "3000000000", correo: "juan@correo.com", id_programa: 1 }])
-        ws["!cols"] = [{ wch: 30 }, { wch: 8 }, { wch: 20 }, { wch: 15 }, { wch: 30 }, { wch: 15 }]
+        const ws = XLSX.utils.json_to_sheet([{ Nombre_Completo: "Juan Pérez", tipo_id: "CC", identificacion: "123456789", telefono: "3000000000", correo: "juan@correo.com" }])
+        ws["!cols"] = [{ wch: 30 }, { wch: 8 }, { wch: 20 }, { wch: 15 }, { wch: 30 }]
         const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Plantilla_Personas")
         XLSX.writeFile(wb, "plantilla_importacion_personas.xlsx")
     }
@@ -129,8 +122,7 @@ export default function PersonasPage() {
                         idType: row.tipo_id || "CC",
                         identification: String(row.identificacion || row.documento || Math.random().toString().slice(2, 10)),
                         phone: row.telefono || null,
-                        email: row.correo || row.email || "sin@correo.com",
-                        programId: row.id_programa || ""
+                        email: row.correo || row.email || null
                     })
                 })
                 if (res.ok) ok++; else fail++
@@ -153,12 +145,10 @@ export default function PersonasPage() {
             tipo_id: p.idType,
             identificacion: p.identification,
             telefono: p.phone || "",
-            correo: p.email || "",
-            id_programa: p.programId,
-            programa: p.program?.name || ""
+            correo: p.email || ""
         }))
         const ws = XLSX.utils.json_to_sheet(data)
-        ws["!cols"] = [{ wch: 10 }, { wch: 20 }, { wch: 20 }, { wch: 10 }, { wch: 20 }, { wch: 15 }, { wch: 30 }, { wch: 15 }, { wch: 30 }]
+        ws["!cols"] = [{ wch: 10 }, { wch: 20 }, { wch: 20 }, { wch: 10 }, { wch: 20 }, { wch: 15 }]
         const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Personas")
         XLSX.writeFile(wb, `personas_${new Date().toISOString().split("T")[0]}.xlsx`)
     }
@@ -192,28 +182,9 @@ export default function PersonasPage() {
                 </div>
             </div>
             {/* Search and Filters */}
-            <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
-                    <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                    <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nombre, identificación o email..." className="w-full rounded-lg border border-gray-200 bg-white pl-12 pr-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 shadow-theme-xs" />
-                </div>
-                <div className="w-full sm:w-64">
-                    <div className="relative">
-                        <select
-                            value={programFilter}
-                            onChange={(e) => setProgramFilter(e.target.value)}
-                            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 shadow-theme-xs appearance-none pr-10"
-                        >
-                            <option value="">Todos los programas</option>
-                            {programs.map(p => (
-                                <option key={p.id} value={p.id}>{p.name}</option>
-                            ))}
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
-                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-                        </div>
-                    </div>
-                </div>
+            <div className="relative max-w-md mb-4">
+                <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nombre, identificación o email..." className="w-full rounded-lg border border-gray-200 bg-white pl-12 pr-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 shadow-theme-xs transition-colors" />
             </div>
             {loading ? <div className="flex justify-center py-16"><div className="w-10 h-10 border-4 border-brand-200 border-t-brand-500 rounded-full animate-spin"></div></div> : (
                 <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-theme-xs">
@@ -237,7 +208,6 @@ export default function PersonasPage() {
                             <th className="px-6 py-4 text-left text-theme-xs font-medium text-gray-500 uppercase">Nombre</th>
                             <th className="px-6 py-4 text-left text-theme-xs font-medium text-gray-500 uppercase">Identificación</th>
                             <th className="px-6 py-4 text-left text-theme-xs font-medium text-gray-500 uppercase">Email</th>
-                            <th className="px-6 py-4 text-left text-theme-xs font-medium text-gray-500 uppercase">Programa</th>
                             <th className="px-6 py-4 text-right text-theme-xs font-medium text-gray-500 uppercase">Acciones</th>
                         </tr></thead>
                         <tbody className="divide-y divide-gray-100">
@@ -259,8 +229,7 @@ export default function PersonasPage() {
                                     </td>
                                     <td className="px-6 py-4 text-sm font-medium text-gray-800">{p.fullName}</td>
                                     <td className="px-6 py-4 text-sm text-gray-500"><span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded mr-1.5 font-medium">{p.idType}</span>{p.identification}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-500">{p.email}</td>
-                                    <td className="px-6 py-4"><span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${p.program ? "bg-brand-50 text-brand-600" : "bg-gray-100 text-gray-600"}`}>{p.program?.name || "Sin programa"}</span></td>
+                                    <td className="px-6 py-4 text-sm text-gray-500">{p.email || <span className="text-gray-300 italic">No asignado</span>}</td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="inline-flex items-center gap-1">
                                             <button onClick={() => openEdit(p)} title="Editar" className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-brand-600 transition-colors"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button>
@@ -297,8 +266,7 @@ export default function PersonasPage() {
                                 <div><label className="block text-sm font-medium text-gray-700 mb-2">Identificación</label><input type="text" value={form.identification} onChange={e => setForm({ ...form, identification: e.target.value })} required className={inputCls} placeholder="Número" /></div>
                             </div>
                             <div><label className="block text-sm font-medium text-gray-700 mb-2">Teléfono <span className="text-gray-400">(opcional)</span></label><input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className={inputCls} placeholder="Teléfono" /></div>
-                            <div><label className="block text-sm font-medium text-gray-700 mb-2">Correo</label><input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required className={inputCls} placeholder="correo@ejemplo.com" /></div>
-                            <div><label className="block text-sm font-medium text-gray-700 mb-2">Programa</label><SearchableSelect value={form.programId} onChange={(val) => setForm({ ...form, programId: val })} placeholder="Sin programa" options={programs.map(p => ({ label: p.name, value: String(p.id) }))} /></div>
+                            <div><label className="block text-sm font-medium text-gray-700 mb-2">Correo <span className="text-gray-400">(opcional)</span></label><input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className={inputCls} placeholder="correo@ejemplo.com" /></div>
                             <div className="flex gap-3 pt-2">
                                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-theme-xs transition-colors">Cancelar</button>
                                 <button type="submit" className="flex-1 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 shadow-theme-xs transition-colors">Guardar</button>

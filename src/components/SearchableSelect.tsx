@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from "react"
 import { createPortal } from "react-dom"
 
-interface Option { label: string; value: string }
+interface Option { label: string; value: string; description?: string }
 
 interface SearchableSelectProps {
     options: Option[]
@@ -10,9 +10,17 @@ interface SearchableSelectProps {
     onChange: (value: string) => void
     placeholder?: string
     className?: string
+    disabled?: boolean
 }
 
-export default function SearchableSelect({ options, value, onChange, placeholder = "Seleccionar...", className = "" }: SearchableSelectProps) {
+export default function SearchableSelect({
+    options,
+    value,
+    onChange,
+    placeholder = "Seleccionar...",
+    className = "",
+    disabled = false
+}: SearchableSelectProps) {
     const [open, setOpen] = useState(false)
     const [search, setSearch] = useState("")
     const [pos, setPos] = useState({ top: 0, left: 0, width: 0 })
@@ -50,10 +58,11 @@ export default function SearchableSelect({ options, value, onChange, placeholder
         }
     }, [open, updatePos])
 
-    const filtered = options.filter(o => o.label.toLowerCase().includes(search.toLowerCase()))
+    const filtered = options.filter(o => o.label.toLowerCase().includes(search.toLowerCase()) || o.description?.toLowerCase().includes(search.toLowerCase()))
     const selectedLabel = options.find(o => o.value === value)?.label
 
     const handleOpen = () => {
+        if (disabled) return
         setOpen(true)
         setSearch("")
         setTimeout(() => inputRef.current?.focus(), 50)
@@ -71,7 +80,8 @@ export default function SearchableSelect({ options, value, onChange, placeholder
                 ref={btnRef}
                 type="button"
                 onClick={handleOpen}
-                className="w-full flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 shadow-theme-xs hover:bg-gray-50 transition-colors text-left min-w-[180px]"
+                disabled={disabled}
+                className={`w-full flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 shadow-theme-xs transition-colors text-left min-w-[180px] ${disabled ? "opacity-50 cursor-not-allowed bg-gray-50" : "hover:bg-gray-50"}`}
             >
                 <span className={selectedLabel ? "text-gray-800" : "text-gray-400"}>{selectedLabel || placeholder}</span>
                 <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -80,7 +90,7 @@ export default function SearchableSelect({ options, value, onChange, placeholder
                 <div
                     ref={dropRef}
                     style={{ position: "fixed", top: pos.top, left: pos.left, width: Math.max(pos.width, 220), zIndex: 999999 }}
-                    className="rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden"
+                    className="rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden animate-in fade-in zoom-in-95 duration-100"
                 >
                     <div className="p-2 border-b border-gray-100">
                         <input
@@ -107,7 +117,10 @@ export default function SearchableSelect({ options, value, onChange, placeholder
                                 onClick={() => handleSelect(o.value)}
                                 className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${value === o.value ? "text-brand-600 font-medium bg-brand-50/50" : "text-gray-700"}`}
                             >
-                                {o.label}
+                                <div className="flex flex-col">
+                                    <span>{o.label}</span>
+                                    {o.description && <span className="text-xs text-gray-400 font-normal">{o.description}</span>}
+                                </div>
                             </button>
                         ))}
                         {filtered.length === 0 && (

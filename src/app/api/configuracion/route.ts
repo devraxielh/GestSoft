@@ -39,7 +39,12 @@ export async function POST(request: Request) {
                 smtpPass: body.smtpPass,
                 smtpFrom: body.smtpFrom,
                 logoUrl: body.logoUrl,
-                primaryColor: body.primaryColor
+                primaryColor: body.primaryColor,
+                secondaryColor: body.secondaryColor,
+                successColor: body.successColor,
+                confirmColor: body.confirmColor,
+                groqApiKey: body.groqApiKey,
+                groqModel: body.groqModel
             },
             create: {
                 id: 1,
@@ -50,7 +55,12 @@ export async function POST(request: Request) {
                 smtpPass: body.smtpPass,
                 smtpFrom: body.smtpFrom,
                 logoUrl: body.logoUrl || "/logo.webp",
-                primaryColor: body.primaryColor || "#465fff"
+                primaryColor: body.primaryColor || "#465fff",
+                secondaryColor: body.secondaryColor || "#475467",
+                successColor: body.successColor || "#12b76a",
+                confirmColor: body.confirmColor || "#f79009",
+                groqApiKey: body.groqApiKey,
+                groqModel: body.groqModel
             }
         })
 

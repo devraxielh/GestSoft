@@ -1,4 +1,4 @@
-import { AuthOptions } from "next-auth"
+import { AuthOptions, User } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
@@ -25,7 +25,7 @@ export const authOptions: AuthOptions = {
                 if (!isValid) return null
 
                 const rolesConcat = user.roles.map(r => r.name).join(", ")
-                const allPermissions = Array.from(new Set(user.roles.flatMap(r => r.permissions.map((p: any) => p.name))))
+                const allPermissions = Array.from(new Set(user.roles.flatMap(r => r.permissions.map((p) => p.name))))
 
                 return {
                     id: String(user.id),
@@ -34,17 +34,17 @@ export const authOptions: AuthOptions = {
                     role: rolesConcat,
                     permissions: allPermissions,
                     image: user.image
-                }
+                } as User
             }
         })
     ],
     callbacks: {
         async jwt({ token, user, trigger, session }) {
             if (user) {
-                token.role = (user as any).role
-                token.permissions = (user as any).permissions
+                token.role = user.role
+                token.permissions = user.permissions
                 token.id = user.id
-                token.image = (user as any).image
+                token.image = user.image
             }
             if (trigger === "update" && session) {
                 if (session.user?.name) token.name = session.user.name
@@ -55,9 +55,9 @@ export const authOptions: AuthOptions = {
         },
         async session({ session, token }) {
             if (session.user) {
-                (session.user as any).role = token.role as string
-                (session.user as any).permissions = token.permissions as string[]
-                (session.user as any).id = token.id as string
+                session.user.role = token.role as string
+                session.user.permissions = token.permissions as string[]
+                session.user.id = token.id as string
                 session.user.image = token.image as string
             }
             return session

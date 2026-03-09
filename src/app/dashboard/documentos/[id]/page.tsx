@@ -5,6 +5,9 @@ import toast from "react-hot-toast"
 import dynamic from "next/dynamic"
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false })
 import "react-quill-new/dist/quill.snow.css"
+import { Document, Packer, Paragraph as DocxParagraph, TextRun, TableOfContents, HeadingLevel, Table, TableRow, TableCell, BorderStyle, WidthType, AlignmentType, ImageRun } from "docx";
+import { saveAs } from "file-saver";
+import { parseHtmlToDocxBlocks } from "@/lib/html-to-docx";
 import PersonFormModal from "@/components/PersonFormModal"
 import RichTextEditor from "@/components/RichTextEditor"
 
@@ -197,6 +200,168 @@ export default function DocumentoEditorPage() {
         } catch { toast.error("Error de conexión") }
         setSaving(false)
     }
+
+
+    const generateDOCX = async () => {
+        try {
+            const sections = [];
+
+            // Generate Cover Page blocks
+            const coverBlocks = [];
+            const docType = doc?.type === "Registro Calificado" ? "DOCUMENTO DE SOLICITUD DE CREACIÓN DE PROGRAMAS NUEVOS" : doc?.type?.toUpperCase() || "DOCUMENTO";
+            const programName = "PROGRAMA DE " + (doc?.program?.name?.toUpperCase() || "");
+
+            if (coverImage) {
+                 try {
+                    let imageBuffer;
+                    if (coverImage.startsWith('data:')) {
+                        const base64Data = coverImage.split(',')[1];
+                        imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0)).buffer;
+                    } else {
+                        const response = await fetch(coverImage);
+                        imageBuffer = await response.arrayBuffer();
+                    }
+
+                    coverBlocks.push(new DocxParagraph({
+                        children: [
+                            new ImageRun({
+                                data: imageBuffer,
+                                transformation: { width: 600, height: 800 },
+                                type: "png" as any,
+                            }),
+                        ],
+                    }));
+                } catch (e) {
+                    console.error('Failed to load cover image for docx', e);
+                }
+            }
+
+            // Cover titles
+            coverBlocks.push(new DocxParagraph({ children: [new TextRun({ text: docType, bold: true, size: 28 })], alignment: AlignmentType.CENTER }));
+            coverBlocks.push(new DocxParagraph({ children: [new TextRun({ text: programName, bold: true, size: 28 })], alignment: AlignmentType.CENTER }));
+            coverBlocks.push(new DocxParagraph({ children: [new TextRun({ break: 1 })] }));
+
+            sections.push({
+                properties: { },
+                children: [
+                    ...coverBlocks,
+                    new DocxParagraph({ children: [new TextRun({ break: 1 })], pageBreakBefore: true }),
+                    new DocxParagraph({ text: "Tabla de Contenido", heading: HeadingLevel.HEADING_1, alignment: AlignmentType.CENTER }),
+                    new TableOfContents("Índice", {
+                        hyperlink: true,
+                        headingStyleRange: "1-3",
+                    }),
+                    new DocxParagraph({ children: [new TextRun({ break: 1 })], pageBreakBefore: true }),
+                ]
+            });
+
+            const contentChildren = [];
+
+            // Initial Page text
+            const defaultPagIni = [
+                doc?.type === "Registro Calificado" ? "DOCUMENTO DE SOLICITUD DE CREACIÓN DE PROGRAMAS NUEVOS" : doc?.type?.toUpperCase() || "DOCUMENTO",
+                "", "", "", "",
+                "PROGRAMA DE",
+                doc?.program?.name?.toUpperCase() || "",
+                "", "", "", "",
+                doc?.program?.faculty?.name?.toUpperCase() || "FACULTAD",
+                "", "", "", "",
+                doc?.program?.faculty?.sede?.name?.toUpperCase() || "UNIVERSIDAD",
+                "SEDE MONTERÍA",
+                "", "", "",
+                `MONTERÍA (${new Date().getDate().toString().padStart(2, "0")} – ${(new Date().getMonth() + 1).toString().padStart(2, "0")} – ${doc?.year || new Date().getFullYear()})`
+            ].join("\n");
+
+            const pagIniText = docData.paginaInicial || defaultPagIni;
+            for (const line of pagIniText.split("\n")) {
+                if (!line.trim()) {
+                    contentChildren.push(new DocxParagraph({ children: [new TextRun({ break: 1 })] }));
+                } else {
+                    contentChildren.push(new DocxParagraph({
+                        children: [new TextRun({ text: line, bold: true, size: 26 })],
+                        alignment: AlignmentType.CENTER
+                    }));
+                }
+            }
+            contentChildren.push(new DocxParagraph({ children: [new TextRun({ break: 1 })], pageBreakBefore: true }));
+
+            // Team sections
+            const teamSections = [
+                { title: "Equipo Directivo", data: docData.teams.directivo },
+                { title: "Equipo Responsable de la Construcción del Documento", data: docData.teams.construccion },
+                { title: "Equipo de Apoyo y Soporte de Aseguramiento de la Calidad", data: docData.teams.apoyo }
+            ];
+            for (const section of teamSections) {
+                if (section.data.length === 0) continue;
+                contentChildren.push(new DocxParagraph({ text: section.title, heading: HeadingLevel.HEADING_2 }));
+
+                const rows = [];
+                // Header
+                rows.push(new TableRow({
+                    children: [
+                        new TableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: "Nombres y Apellidos", bold: true })] })] }),
+                        new TableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: "Cargo", bold: true })] })] })
+                    ],
+                }));
+
+                for (const m of section.data) {
+                    rows.push(new TableRow({
+                        children: [
+                            new TableCell({ children: [new DocxParagraph({ text: m.name || "" })] }),
+                            new TableCell({ children: [new DocxParagraph({ text: m.role || "" })] })
+                        ]
+                    }));
+                }
+
+                contentChildren.push(new Table({ rows, width: { size: 100, type: WidthType.PERCENTAGE } }));
+                contentChildren.push(new DocxParagraph({ children: [new TextRun({ break: 1 })] }));
+            }
+            contentChildren.push(new DocxParagraph({ children: [new TextRun({ break: 1 })], pageBreakBefore: true }));
+
+            // Contexto, Facultad, Programa
+            if (sedeData.contextoInstitucional) {
+                contentChildren.push(...(await parseHtmlToDocxBlocks(sedeData.contextoInstitucional)));
+            }
+            if (sedeData.presentacionFacultad) {
+                 contentChildren.push(...(await parseHtmlToDocxBlocks(sedeData.presentacionFacultad)));
+            }
+            if (sedeData.presentacionPrograma) {
+                 contentChildren.push(...(await parseHtmlToDocxBlocks(sedeData.presentacionPrograma)));
+            }
+
+            // Factores
+            for (const factor of docData.factors) {
+                if (factor.paragraphs.length === 0) continue;
+                contentChildren.push(new DocxParagraph({ text: `${factor.factorNumber}. ${factor.factorName}`, heading: HeadingLevel.HEADING_1 }));
+
+                for (const p of factor.paragraphs) {
+                    contentChildren.push(new DocxParagraph({ text: p.title, heading: HeadingLevel.HEADING_2 }));
+                    contentChildren.push(...(await parseHtmlToDocxBlocks(p.content || "")));
+                }
+            }
+
+            sections.push({ properties: {}, children: contentChildren });
+
+            const docxDocument = new Document({
+                sections,
+            });
+
+            const buffer = await Packer.toBlob(docxDocument);
+
+            let docName = (doc?.program?.name || "Documento_Institucional")
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accents
+                .replace(/[^a-zA-Z0-9\s-]/g, "") // remove all symbols
+                .trim()
+                .replace(/\s+/g, "_");
+            if (!docName) docName = "Documento_Institucional";
+
+            saveAs(buffer, `${docName}.docx`);
+            toast.success("Documento Word generado exitosamente");
+        } catch (err) {
+            console.error("Error generando DOCX:", err);
+            toast.error("Error al generar Documento Word");
+        }
+    };
 
     const generatePDF = async () => {
         try {
@@ -1050,6 +1215,10 @@ export default function DocumentoEditorPage() {
                         <button onClick={handleSave} disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 transition-colors disabled:opacity-50">
                             {saving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
                             {saving ? "Guardando..." : "Guardar"}
+                        </button>
+                                                <button onClick={generateDOCX} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-blue-700 transition-colors">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            Generar Word
                         </button>
                         <button onClick={generatePDF} className="inline-flex items-center gap-2 rounded-lg bg-gray-700 px-5 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-gray-800 transition-colors">
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>

@@ -38,10 +38,10 @@ export async function POST(req: NextRequest) {
                 batch.map(async (assignment) => {
                     const consultaUrl = `${baseUrl}/consulta`
                     await sendCertificateNotification(
-                        assignment.person.email,
+                        assignment.person.email || "",
                         assignment.person.fullName,
                         assignment.certificate.event.name,
-                        assignment.certificate.participationType,
+                        assignment.certificate.participationType || "",
                         consultaUrl
                     )
                 })

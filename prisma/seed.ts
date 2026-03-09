@@ -39,7 +39,9 @@ async function main() {
             email: 'admin@admin.com',
             name: 'Administrador',
             password: hashedPassword,
-            roleId: adminRole.id,
+            roles: {
+                connect: [{ id: adminRole.id }]
+            },
             active: true,
         },
     })

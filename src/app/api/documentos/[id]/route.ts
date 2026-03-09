@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params
-        const documento = await (prisma as any).documento.findUnique({
+        const documento = await prisma.documento.findUnique({
             where: { id: parseInt(id) },
             include: { program: { include: { faculty: { include: { sede: true } } } } }
         })
@@ -19,7 +19,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     try {
         const { id } = await params
         const { type, year, programId, description, status, content, coverPage, contextoInstitucional, misionInstitucional, visionInstitucional, presentacionFacultad, presentacionPrograma } = await req.json()
-        const documento = await (prisma as any).documento.update({
+        const documento = await prisma.documento.update({
             where: { id: parseInt(id) },
             data: {
                 type,
@@ -49,7 +49,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params
-        await (prisma as any).documento.delete({ where: { id: parseInt(id) } })
+        await prisma.documento.delete({ where: { id: parseInt(id) } })
         return NextResponse.json({ ok: true })
     } catch {
         return NextResponse.json({ error: "Error al eliminar" }, { status: 400 })

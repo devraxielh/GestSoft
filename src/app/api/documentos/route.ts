@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 
 export async function GET() {
     try {
-        const documentos = await (prisma as any).documento.findMany({
+        const documentos = await prisma.documento.findMany({
             orderBy: { year: "desc" },
             include: {
                 program: {
@@ -21,7 +21,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
     try {
         const { type, year, programId, description, status } = await req.json()
-        const documento = await (prisma as any).documento.create({
+        const documento = await prisma.documento.create({
             data: {
                 type,
                 year: parseInt(year),

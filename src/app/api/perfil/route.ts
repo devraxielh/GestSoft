@@ -5,23 +5,18 @@ import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 
 export async function GET() {
-    console.log("Profile GET: Starting request")
     try {
         const session = await getServerSession(authOptions)
-        console.log("Profile GET: Session retrieved:", session ? "YES" : "NO")
 
         if (!session || !session.user) {
-            console.log("Profile GET: No session or user found")
             return NextResponse.json({ error: "No autorizado. Inicie sesión nuevamente." }, { status: 401 })
         }
 
         const userId = (session.user as any).id
         const userEmail = session.user.email
-        console.log("Profile GET: User found in session - ID:", userId, "Email:", userEmail)
 
         let user;
         if (userId && !isNaN(Number(userId))) {
-            console.log("Profile GET: Searching user by ID:", userId)
             user = await prisma.user.findUnique({
                 where: { id: Number(userId) },
                 select: {
@@ -36,11 +31,9 @@ export async function GET() {
                     }
                 }
             })
-            console.log("Profile GET: User by ID result:", user ? "FOUND" : "NOT FOUND")
         }
 
         if (!user && userEmail) {
-            console.log("Profile GET: Searching user by Email fallback:", userEmail)
             user = await prisma.user.findUnique({
                 where: { email: userEmail },
                 select: {
@@ -55,15 +48,12 @@ export async function GET() {
                     }
                 }
             })
-            console.log("Profile GET: User by Email result:", user ? "FOUND" : "NOT FOUND")
         }
 
         if (!user) {
-            console.log("Profile GET: User not found in database for current session")
             return NextResponse.json({ error: "No se encontró su información de usuario en la base de datos." }, { status: 404 })
         }
 
-        console.log("Profile GET: Success! Returning user data.")
         return NextResponse.json(user)
     } catch (error) {
         console.error("Profile GET: CRITICAL ERROR:", error)

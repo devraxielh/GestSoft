@@ -25,7 +25,7 @@ export const authOptions: AuthOptions = {
                 if (!isValid) return null
 
                 const rolesConcat = user.roles.map(r => r.name).join(", ")
-                const allPermissions = Array.from(new Set(user.roles.flatMap(r => r.permissions.map((p: any) => p.name))))
+                const allPermissions = Array.from(new Set(user.roles.flatMap(r => r.permissions.map((p: { name: string }) => p.name))))
 
                 return {
                     id: String(user.id),
@@ -41,10 +41,10 @@ export const authOptions: AuthOptions = {
     callbacks: {
         async jwt({ token, user, trigger, session }) {
             if (user) {
-                token.role = (user as any).role
-                token.permissions = (user as any).permissions
+                token.role = user.role
+                token.permissions = user.permissions
                 token.id = user.id
-                token.image = (user as any).image
+                token.image = user.image
             }
             if (trigger === "update" && session) {
                 if (session.user?.name) token.name = session.user.name
@@ -55,10 +55,10 @@ export const authOptions: AuthOptions = {
         },
         async session({ session, token }) {
             if (session.user) {
-                (session.user as any).role = token.role as string
-                (session.user as any).permissions = token.permissions as string[]
-                (session.user as any).id = token.id as string
-                session.user.image = token.image as string
+                session.user.role = token.role
+                session.user.permissions = token.permissions
+                session.user.id = token.id
+                session.user.image = token.image as string | null | undefined
             }
             return session
         }

@@ -19,8 +19,6 @@ interface Documento {
     contextoInstitucional: string | null
     misionInstitucional: string | null
     visionInstitucional: string | null
-    presentacionFacultad: string | null
-    presentacionPrograma: string | null
     program?: { id: number; name: string; type?: string; faculty?: { name: string; sede?: { id: number; name: string; contextoInstitucional?: string | null; misionInstitucional?: string | null; visionInstitucional?: string | null } } }
 }
 

@@ -1,0 +1,15 @@
+--- src/app/dashboard/documentos/[id]/page.tsx
++++ src/app/dashboard/documentos/[id]/page.tsx
+@@ -214,8 +214,10 @@
+                     content: JSON.stringify(docData),
+                     coverPage: coverImage || null,
+                     contextoInstitucional: docData.contextoInstitucional || null,
+-                    misionInstitucional: null,
+-                    visionInstitucional: null
++                    misionInstitucional: doc.misionInstitucional || null,
++                    visionInstitucional: doc.visionInstitucional || null,
++                    presentacionFacultad: doc.presentacionFacultad || null,
++                    presentacionPrograma: doc.presentacionPrograma || null
+                 })
+             })
+             if (res.ok) {

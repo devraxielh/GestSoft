@@ -209,18 +209,7 @@ export default function DocumentoEditorPage() {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    type: doc.type,
-                    year: String(doc.year),
-                    programId: String(doc.program?.id),
-                    description: doc.description,
-                    status: newStatus,
-                    content: JSON.stringify(docData),
-                    coverPage: coverImage || null,
-                    contextoInstitucional: docData.contextoInstitucional || null,
-                    misionInstitucional: doc.misionInstitucional || null,
-                    visionInstitucional: doc.visionInstitucional || null,
-                    presentacionFacultad: doc.presentacionFacultad || null,
-                    presentacionPrograma: doc.presentacionPrograma || null
+                    status: newStatus
                 })
             })
             if (res.ok) {

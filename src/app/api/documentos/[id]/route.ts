@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const session = await getServerSession(authOptions)
+    if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     try {
         const { id } = await params
         const documento = await (prisma as any).documento.findUnique({
@@ -16,6 +20,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const session = await getServerSession(authOptions)
+    if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     try {
         const { id } = await params
         const { type, year, programId, description, status, content, coverPage, contextoInstitucional, misionInstitucional, visionInstitucional, presentacionFacultad, presentacionPrograma } = await req.json()
@@ -47,6 +53,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const session = await getServerSession(authOptions)
+    if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     try {
         const { id } = await params
         await (prisma as any).documento.delete({ where: { id: parseInt(id) } })

@@ -48,29 +48,32 @@ export default function CertificateBuilder({
     initialHtml: string;
     onChange: (html: string) => void;
 }) {
-    const [state, setState] = useState<CertBuilderState>(defaultState);
-    const [selectedId, setSelectedId] = useState<string | null>(null);
-    const [isInitialized, setIsInitialized] = useState(false);
-
-    useEffect(() => {
-        if (!isInitialized && initialHtml) {
+    // Initialize state properly by parsing initial HTML once, bypassing the effect
+    const [state, setState] = useState<CertBuilderState>(() => {
+        if (initialHtml) {
             try {
-                // Try decoding built-in state JSON
                 const match = initialHtml.match(/<script id="cert-editor-data" type="application\/json">([\s\S]*?)<\/script>/);
                 if (match && match[1]) {
-                    setState(JSON.parse(match[1]));
+                    return JSON.parse(match[1]);
                 }
             } catch (e) {
                 console.error("Failed to parse cert state", e);
             }
-            setIsInitialized(true);
-        } else if (!isInitialized) {
-            setIsInitialized(true);
         }
-    }, [initialHtml, isInitialized]);
+        return defaultState;
+    });
+
+    const [selectedId, setSelectedId] = useState<string | null>(null);
+
+    const isInitializedRef = React.useRef(false);
+
+    // Mark as initialized to prevent initial render jitter
+    useEffect(() => {
+        isInitializedRef.current = true;
+    }, []);
 
     useEffect(() => {
-        if (!isInitialized) return;
+        if (!isInitializedRef.current) return;
 
         let html = `<div style="width: 800px; height: 600px; position: relative; ${state.bgImage ? `background: url('${state.bgImage}') center/cover no-repeat;` : 'background-color: #ffffff;'} overflow: hidden; margin: 0; padding: 0;">\n`;
 
@@ -90,7 +93,7 @@ export default function CertificateBuilder({
         html += `</div>`;
 
         onChange(html);
-    }, [state, isInitialized]); // eslint-disable-line
+    }, [state, onChange]);
 
     const addElement = (type: 'text' | 'variable' | 'image', contentStr?: string) => {
         const newEl: CertElement = {

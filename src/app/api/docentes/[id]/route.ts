@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const id = parseInt(params.id)
+        const session = await getServerSession(authOptions)
+        if (!session) {
+            return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+        }
+
+        const resolvedParams = await params
+        const id = parseInt(resolvedParams.id)
         const { contractType, dedication, teacherType } = await req.json()
 
         const docente = await prisma.docente.update({
@@ -22,9 +30,15 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const id = parseInt(params.id)
+        const session = await getServerSession(authOptions)
+        if (!session) {
+            return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+        }
+
+        const resolvedParams = await params
+        const id = parseInt(resolvedParams.id)
         await prisma.docente.delete({ where: { id } })
         return NextResponse.json({ success: true })
     } catch (e: any) {

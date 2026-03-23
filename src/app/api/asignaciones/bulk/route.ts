@@ -33,6 +33,15 @@ export async function POST(req: NextRequest) {
         let errorCount = 0;
         const errors: string[] = [];
 
+        // 1. Validate and process initial data
+        const validRows: {
+            index: number;
+            dataRow: BulkAssignmentRow;
+            idStr: string;
+            formattedName: string;
+            email: string;
+        }[] = [];
+
         for (const [index, row] of people.entries()) {
             const dataRow = row as BulkAssignmentRow;
 
@@ -48,55 +57,124 @@ export async function POST(req: NextRequest) {
                 continue;
             }
 
+            const idStr = dataRow.Identificacion.toString().trim();
+            const rawName = dataRow.Nombre_Completo.toString().trim();
+            const formattedName = rawName.toLowerCase().split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
+            validRows.push({
+                index,
+                dataRow,
+                idStr,
+                formattedName,
+                email: dataRow.Correo ? dataRow.Correo.toString().trim() : ""
+            });
+        }
+
+        if (validRows.length > 0) {
             try {
-                // Find program ID if name is provided
-                // Ensure identification is string and clean it up
-                const idStr = dataRow.Identificacion.toString().trim();
-                const rawName = dataRow.Nombre_Completo.toString().trim();
-                const formattedName = rawName.toLowerCase().split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-
-                // Upsert person
-                const person = await prisma.person.upsert({
-                    where: { identification: idStr },
-                    update: {
-                        fullName: formattedName,
-                        email: dataRow.Correo || ""
-                    },
-                    create: {
-                        identification: idStr,
-                        idType: "CC", // Defaulting to CC for bulk uploads if no type is provided
-                        fullName: formattedName,
-                        email: dataRow.Correo ? dataRow.Correo.toString().trim() : ""
-                    }
+                // 2. Process persons in batch
+                const idStrs = [...new Set(validRows.map(r => r.idStr))];
+                const existingPersons = await prisma.person.findMany({
+                    where: { identification: { in: idStrs } }
                 });
+                const existingPersonMap = new Map(existingPersons.map(p => [p.identification, p]));
 
-                // Create assignment if it doesn't exist with EXACT same details
-                const existingAssignment = await prisma.certificateAssignment.findFirst({
-                    where: {
-                        certificateId: certId,
-                        personId: person.id,
-                        participationDetails: dataRow.Detalles || null
-                    }
-                });
+                const personsToCreate = new Map<string, any>();
+                const personsToUpdate = new Map<string, any>();
 
-                if (!existingAssignment) {
-                    await prisma.certificateAssignment.create({
-                        data: {
-                            certificateId: certId,
-                            personId: person.id,
-                            participationDetails: dataRow.Detalles || null
+                for (const row of validRows) {
+                    const existing = existingPersonMap.get(row.idStr);
+                    if (existing) {
+                        if (existing.fullName !== row.formattedName || existing.email !== row.email) {
+                            personsToUpdate.set(row.idStr, {
+                                id: existing.id,
+                                fullName: row.formattedName,
+                                email: row.email
+                            });
                         }
-                    });
-                    assignedCount++;
-                } else {
-                    errorCount++;
-                    errors.push(`Fila ${index + 2}: La persona ${dataRow.Identificacion} ya tiene este certificado asignado.`);
+                    } else {
+                        if (!personsToCreate.has(row.idStr)) {
+                            personsToCreate.set(row.idStr, {
+                                identification: row.idStr,
+                                idType: "CC", // Defaulting to CC for bulk uploads
+                                fullName: row.formattedName,
+                                email: row.email
+                            });
+                        }
+                    }
                 }
 
+                if (personsToCreate.size > 0) {
+                    await prisma.person.createMany({
+                        data: Array.from(personsToCreate.values()),
+                        skipDuplicates: true
+                    });
+                }
+
+                if (personsToUpdate.size > 0) {
+                    const updatePromises = Array.from(personsToUpdate.values()).map(p =>
+                        prisma.person.update({
+                            where: { id: p.id },
+                            data: { fullName: p.fullName, email: p.email }
+                        }).catch(err => {
+                            console.error(`Error updating person ${p.id}:`, err);
+                        })
+                    );
+                    await Promise.all(updatePromises);
+                }
+
+                const allPersons = await prisma.person.findMany({
+                    where: { identification: { in: idStrs } },
+                    select: { id: true, identification: true }
+                });
+                const personIdMap = new Map(allPersons.map(p => [p.identification, p.id]));
+
+                // 3. Process assignments in batch
+                const existingAssignments = await prisma.certificateAssignment.findMany({
+                    where: {
+                        certificateId: certId,
+                        personId: { in: Array.from(personIdMap.values()) }
+                    },
+                    select: { personId: true, participationDetails: true }
+                });
+
+                const assignmentSet = new Set(
+                    existingAssignments.map(a => `${a.personId}-${a.participationDetails || ''}`)
+                );
+
+                const newAssignments: { certificateId: number; personId: number; participationDetails: string | null }[] = [];
+                for (const row of validRows) {
+                    const pId = personIdMap.get(row.idStr);
+                    if (!pId) {
+                        errorCount++;
+                        errors.push(`Fila ${row.index + 2}: Error al procesar persona ${row.idStr}`);
+                        continue;
+                    }
+
+                    const key = `${pId}-${row.dataRow.Detalles || ''}`;
+                    if (!assignmentSet.has(key)) {
+                        newAssignments.push({
+                            certificateId: certId,
+                            personId: pId,
+                            participationDetails: row.dataRow.Detalles || null
+                        });
+                        assignmentSet.add(key); // Prevent duplicates in the same batch
+                    } else {
+                        errorCount++;
+                        errors.push(`Fila ${row.index + 2}: La persona ${row.dataRow.Identificacion} ya tiene este certificado asignado.`);
+                    }
+                }
+
+                if (newAssignments.length > 0) {
+                    await prisma.certificateAssignment.createMany({
+                        data: newAssignments,
+                        skipDuplicates: true
+                    });
+                    assignedCount += newAssignments.length;
+                }
             } catch (err: any) {
-                errorCount++;
-                errors.push(`Fila ${index + 2}: Error al procesar persona ${dataRow.Identificacion} - ${err.message}`);
-                console.error("Bulk assign row error: ", err);
+                console.error("Bulk assign batch error: ", err);
+                return NextResponse.json({ error: "Error procesando el lote de datos" }, { status: 500 })
             }
         }
 

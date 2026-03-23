@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const id = parseInt(params.id)
+        const { id: paramId } = await params
+        const id = parseInt(paramId)
         const { contractType, dedication, teacherType } = await req.json()
 
         const docente = await prisma.docente.update({
@@ -22,9 +23,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const id = parseInt(params.id)
+        const { id: paramId } = await params
+        const id = parseInt(paramId)
         await prisma.docente.delete({ where: { id } })
         return NextResponse.json({ success: true })
     } catch (e: any) {

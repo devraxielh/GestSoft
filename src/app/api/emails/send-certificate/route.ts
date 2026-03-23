@@ -37,6 +37,9 @@ export async function POST(req: NextRequest) {
             const results = await Promise.allSettled(
                 batch.map(async (assignment) => {
                     const consultaUrl = `${baseUrl}/consulta`
+                    if (!assignment.person.email) {
+                        throw new Error(`El usuario ${assignment.person.fullName} no tiene correo`)
+                    }
                     await sendCertificateNotification(
                         assignment.person.email,
                         assignment.person.fullName,

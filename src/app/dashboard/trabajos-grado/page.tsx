@@ -568,7 +568,7 @@ export default function ThesisPage() {
                         <table className="w-full text-left">
                             <thead className="bg-gray-50 border-b border-gray-100">
                                 <tr>
-                                    <th className="px-6 py-4 w-12"><input type="checkbox" checked={currentTheses.length > 0 && currentTheses.every(t => selectedIds.includes(t.id))} onChange={(e) => { if (e.target.checked) setSelectedIds([...selectedIds, ...currentTheses.map(t => t.id).filter(id => !selectedIds.includes(id))]); else setSelectedIds(selectedIds.filter(id => !currentTheses.find(t => t.id === id))); }} /></th>
+                                    <th className="px-6 py-4 w-12"><input type="checkbox" checked={currentTheses.length > 0 && currentTheses.every(t => selectedIds.includes(t.id))} onChange={(e) => { if (e.target.checked) { const selectedSet = new Set(selectedIds); const newIds = currentTheses.map(t => t.id).filter(id => !selectedSet.has(id)); setSelectedIds([...selectedIds, ...newIds]); } else { const currentIds = new Set(currentTheses.map(t => t.id)); setSelectedIds(selectedIds.filter(id => !currentIds.has(id))); } }} /></th>
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Título y Nivel</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Programa</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Estado</th>
